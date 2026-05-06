@@ -1,0 +1,218 @@
+---
+description: Four Gates doctrine — counter-imagination interceptor (locks copy, semantics, and architectural intent)
+globs: **/*.dart, lib/**/*.dart, **/*.md, **/*.mdc
+alwaysApply: true
+---
+
+# FOUR GATES — DOCTRINE LOCK
+
+## 1. CANONICAL DOCTRINE (verbatim — DO NOT REWORD)
+
+> Four Gates is a temporal interceptor. It activates in the narrow
+> interval between an operator assigning the label "failure" to an
+> event and the imagination generating catastrophic projections. The
+> instrument tests whether failure was structurally possible by
+> evaluating four preconditions: capacity, visibility, optionality,
+> and election. If any precondition is absent, the event is classified
+> as overload, and overload does not authorize escalation or
+> self-destructive interpretation. The ledger output is the durable
+> record that the imagination cannot rewrite.
+
+This paragraph is the single source of truth for every Four Gates
+surface. Bridge tile copy, gate framing lines, result screen ballast,
+dictionary entry, PDF section header, and developer comment blocks
+MUST be derived as compressions or expansions of this paragraph.
+Drift is forbidden.
+
+## 2. WHAT FOUR GATES IS NOT
+
+Four Gates is NOT:
+- a quiz, survey, classifier, reflection tool, or check-in
+- an after-event journal
+- a comfort, therapy, or self-compassion exercise
+- a "be kind to yourself" reframe
+- a daily practice
+
+If a future change makes Four Gates resemble any of the above,
+revert it.
+
+## 3. THE INTERCEPTION WINDOW
+
+Four Gates fires in the interval between:
+
+- **Step 2 — Self-label.** The operator says "I failed."
+- **Step 3 — Imagination ignition.** The mind begins manufacturing
+  catastrophic projections (assumed intent, assumed inevitability,
+  assumed personal defect, rewritten event).
+
+Four Gates is the instrument that inserts itself between Step 2 and
+Step 3 to prevent the imagination from rewriting reality. Any UI
+copy, navigation placement, or screen pacing decision must protect
+this window. If a change widens the latency between operator intent
+and the first gate question, revert it.
+
+## 4. GATE SEMANTICS (LOCKED)
+
+Order is fixed. Polarity is fixed. Do not reorder. Do not invert.
+
+| # | Gate         | Question                          | OPEN means         | CLOSED means      |
+|---|--------------|-----------------------------------|--------------------|-------------------|
+| 1 | CAPACITY     | Was action available?             | Action available   | Action absent     |
+| 2 | VISIBILITY   | Was the situation visible?        | Situation visible  | Situation hidden  |
+| 3 | OPTIONALITY  | Were viable options present?      | Options present    | Options absent    |
+| 4 | ELECTION     | Was inaction a chosen state?      | Inaction elected   | Inaction forced   |
+
+## 5. VERDICT TABLE (LOCKED)
+
+| Gates                    | STATUS    | CLASSIFICATION | NEXT directive          |
+|--------------------------|-----------|----------------|-------------------------|
+| ALL FOUR open            | FAILURE   | FAILURE        | `NEXT: re-test in 24h.` |
+| ANY one or more closed   | OVERLOAD  | NOT FAILURE    | (none)                  |
+
+The 24h re-test exists because no FAILURE verdict may be ratified
+under acute somatic load. Do not remove it. Do not generalize it to
+the OVERLOAD path.
+
+## 6. ARCHITECTURAL INVARIANTS
+
+- **One canonical Aegis-log type:** `FOUR_GATES`. Defined once in
+  `lib/screens/four_gates_screen.dart` as `fourGatesLedgerType`.
+  Mirrored in `lib/services/pdf_generator_service.dart`. Do not
+  introduce a second type, alias, or legacy fallback.
+- **Verbatim ledger body in the audit log.** `FourGatesRun.formatLedger()`
+  output is the audit content. Do not truncate, summarize, or
+  pre-format it before persistence. The 80-char Signal Input cap
+  applies to the main audit table only and MUST NOT apply to the
+  FOUR GATES section.
+- **Vault keeps the last 5 runs, newest first.** Do not change
+  retention without explicit operator-facing rationale.
+- **No therapy language anywhere in the Four Gates surface.** Words
+  forbidden in this feature: help, feelings, support, cope, comfort,
+  healing, kindness, self-care, gentle, soothe, validate (as a verb
+  applied to feelings). 7th-sense validation in the Aegis sense
+  (treating the pre-cognitive signal as data) is allowed.
+
+## 7. COPY DERIVATION RULES
+
+When writing or editing Four Gates copy:
+
+1. Open the canonical doctrine in Section 1. Read it.
+2. Write the new copy as a compression (tile/header) or expansion
+   (dictionary/PDF) of that paragraph.
+3. The words **interceptor**, **overload**, **failure**,
+   **structurally possible**, **imagination**, **ledger** are
+   load-bearing. Use them. Do not paraphrase them away.
+4. Aegis voice: monospace-flavored, mechanical, third-person referring
+   to "the operator" and "the instrument." No "you," no "your," no
+   "we," no "us," in user-facing Four Gates copy unless it appears in
+   a gate question (which is operator-direct by spec).
+
+## 8. PROHIBITED ACTIONS WITHOUT EXPLICIT OPERATOR APPROVAL
+
+- Renaming the feature.
+- Adding a fifth gate, removing a gate, or adding a sub-gate.
+- Changing OPEN/CLOSED to a tri-state, slider, or scale.
+- Replacing the binary verdict with a score, percentage, or rating.
+- Auto-running Four Gates on a schedule, timer, or trigger.
+- Sharing, syncing, or transmitting Four Gates runs to any remote
+  service. Runs are local-only by design.
+
+## 9. PDF SECTION HEADERS (LOCKED)
+
+The Technical Audit Log PDF emits the FOUR GATES domain in this exact
+order. Renaming or reordering requires explicit operator approval.
+
+1. `FOUR GATES — VERDICT RECORDS` — verbatim run bodies (newest-first),
+   preceded by the canonical doctrine block from Section 1.
+2. `WEEKLY STRATA — OVERLOAD / FAILURE / RATIFIED` — week-bucketed
+   counts. Column semantics:
+   - OVERLOAD = at least one gate CLOSED
+   - FAILURE  = all four gates OPEN
+   - RATIFIED = re-tests that confirmed or overturned a prior FAILURE
+     (attributed to the original FAILURE's week)
+3. `RATIFICATION RECORDS` — one paired block per ratified contract,
+   newest-ratified-first. Each block carries the verbatim original
+   FAILURE ledger (reconstructed from `PendingRetest.originalGates`)
+   plus contract id, both timestamps, and verdict.
+4. `PENDING RE-TEST CONTRACTS` — active 24h contracts not yet
+   ratified. Pending contracts do NOT expire (Phase 1.4-C Q5).
+5. `DOCTRINE — TEMPORAL INTEGRITY OF FOUR GATES` — bullet doctrine:
+   - Every FAILURE emits a 24-hour contract.
+   - A re-test collects fresh evidence; original evidence is hidden
+     unless revealed.
+   - A re-test may CONFIRM or OVERTURN the original verdict.
+   - A re-test FAILURE emits a new contract (chain continues).
+   - An OVERLOAD re-test ends the chain.
+   - Ledger entries are immutable; re-tests do not modify originals.
+   - The PDF reflects the full temporal arc without interpretation
+     or judgment.
+
+Each section under (2)-(5) carries `PURPOSE` and `INTERPRETATION NOTE`
+preamble blocks rendered via `_sectionPreamble`. The canonical copy is
+authored by the operator and lives in `pdf_generator_service.dart`;
+edits require explicit operator approval.
+
+## 11. OPERATOR-FACING SCAFFOLDING (LOCKED)
+
+The Four Gates screen renders two layers of doctrinal scaffolding that
+exist purely to give the operator orientation before they engage the
+binary gate questions. Without these, the instrument reads like a
+quiz; with them, it reads like a checkpoint.
+
+### 11.1 Micro-preamble (rendered ABOVE Gate 1 only)
+
+Three lines, third-person Aegis voice, verbatim:
+
+> Four Gates fires in the two-second window between self-label and
+> imagination ignition.
+> It tests whether failure was structurally possible.
+> If the Gates close, the imagination cannot rewrite the event.
+
+The preamble appears in **both fresh-run and re-test mode** but
+**only on Gate 1** (`_step == 0`). Repeating it on Gates 2-4 dilutes
+orientation into noise. The result panel does not render it.
+
+Implementation: `_MicroPreamble` widget in `four_gates_screen.dart`.
+Copy is locked at the widget level (`_line1` / `_line2` / `_line3`).
+
+### 11.2 Per-gate micro-headers (rendered BETWEEN gate name and gate question)
+
+One first-person reflective line per gate. Operator-direct by spec —
+gate questions ARE operator-direct (§6) and micro-headers are gate-
+question scaffolding. They MUST stay anchored to the locked semantics
+in §4.
+
+| # | Gate         | Micro-header                                    |
+|---|--------------|-------------------------------------------------|
+| 1 | CAPACITY     | Did I have the means to act in that moment?     |
+| 2 | VISIBILITY   | Could I see what was actually happening?        |
+| 3 | OPTIONALITY  | Were viable alternatives available?             |
+| 4 | ELECTION     | Was inaction my choice, or was it forced?       |
+
+Implementation: `FourGate.microHeader` extension in
+`lib/models/four_gates_run.dart`. The screen reads from the model so
+copy + semantics stay locked together.
+
+### 11.3 Doctrinal note on rejected upgrades
+
+The Path A scaffolding upgrade was paired with three rejected proposals
+that conflict with locked doctrine and were NOT shipped:
+
+- **Renaming gates** to Visibility / Capability / Environment / Agency —
+  rejected (§4 locks gate names, order, and polarity).
+- **Replacing output voice** with second-person coaching copy ("You did
+  not fail" / "You can correct it") — rejected (§6 forbids second-
+  person and therapy-adjacent verbs).
+- **Conditional re-test rule** ("re-test only if new information
+  exists") — rejected; the locked system is automatic 24h contract on
+  every FAILURE, with chaining (§5, §9).
+
+If any future change resurrects one of these three, treat it as a
+doctrine reset, not a tweak — it requires explicit operator approval
+and a full audit of the cursor rule, the `PendingRetest` system, the
+PDF sections, and all FOUR GATES tests.
+
+## 12. WHEN IN DOUBT
+
+Re-read Section 1. If the change does not strengthen the temporal
+interception described there, do not ship it.

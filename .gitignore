@@ -1,0 +1,72 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# The .vscode folder contains launch configuration and tasks you configure in
+# VS Code which you may wish to be included in version control, so this line
+# is commented out by default.
+#.vscode/
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+/coverage/
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Android Studio will place build artifacts here
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+# Android release signing (never commit real secrets)
+/android/key.properties
+*.jks
+
+# Stray Flutter scaffold artifact — never publish
+/_scaffold_tmp/
+
+# Pre-Flutter project archive — kept locally, never publish.
+# This subtree carries 100MB+ APKs and a 120MB gradle.zip that
+# exceed GitHub's 100MB blob limit.
+/AnxietyAnchor/
+
+# Old root-level distribution / build outputs
+/dist/
+/AnxietyAnchor-*.apk
+/AnxietyAnchor_*.apk
+*.apk
+*.aab
+
+# Recovered-code snapshot kept locally only
+/recovered_code.txt
+
+# Asset backup files
+*.mp3.bak
+*.mp4.bak
+*.wav.bak

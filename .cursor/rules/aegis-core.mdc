@@ -1,0 +1,38 @@
+---
+description: Aegis Master Specification V1.0 (Sections A-E)
+globs: **/*.dart, lib/**/*.dart
+alwaysApply: true
+---
+
+# AEGIS MASTER SPECIFICATION
+
+## 1. THE PRIME DIRECTIVE
+Aegis is an Industrial Somatic Stabilization Instrument.
+- **NO THERAPY LANGUAGE:** Do not use "help," "feelings," "support," or "coping."
+- **STABILIZATION OVER COMFORT:** The system provides ballast, not relief.
+- **7TH SENSE VALIDATION:** Pre-cognitive signals are treated as valid sensory data.
+
+## 2. SYSTEM ARCHITECTURE
+- **The Bridge:** Stable reference surface. 40% Monolith Anchor.
+- **The Hollow:** 6-second presence cycle (4s expansion / 2s contraction).
+- **The Vault:** Non-ruminative containment unit.
+- **The Void:** Purge engine. 2.5s gravitational shredding.
+- **The Ledger:** Monospaced technical audit log.
+- **The Index:** Geological persistence (Stability Ratio = (Holds + Activations) / Purges).
+
+## 3. MECHANICAL CONSTRAINTS
+- **Visuals:** Flat black/navy (#000000, #001220). Zero gradients (except Hollow).
+- **Geometry:** Functional radius 0px - 8px.
+- **Haptics:** Actuation on `onPointerDown`. Escalation: Light -> Medium -> Heavy -> Snap.
+- **Typography:** Strictly monospaced (Courier / Roboto Mono).
+
+## 4. THE KILL SWITCH (PRIORITY 0)
+- **Trigger:** 1.25s Long Press on Monolith Anchor.
+- **Action:** Universal interrupt. Immediate drop into Void.
+- **Sequence:** Lockout -> Navy Fade -> Shredding -> Snap -> Return to Bridge.
+
+## 5. GLOSSARY (TECHNICAL DEFINITIONS)
+- **Signal:** A pre-cognitive somatic spike.
+- **Subsurface Energy:** Internal pressure before conscious articulation.
+- **The Snap:** Final haptic discharge event.
+- **Strata:** Weekly geological data layers.

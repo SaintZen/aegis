@@ -1,0 +1,29 @@
+---
+description: Data handling for Hollow (7th Sense) vs Void. Do not redact Hollow text.
+alwaysApply: true
+---
+
+# Data Handling: Hollow vs Void
+
+## Clarification on Data Handling
+
+**The Hollow** is the 7th Sense container (ADDITIVE — it gives a shape to a feeling).
+- **DO NOT** redact this text in the Vault or the PDF.
+- It must be preserved as the 'Signal Input' exactly as the user entered it.
+- When checking the build, ensure Cursor has not "cleansed" or altered the Hollow text.
+
+**The Void** is SUBTRACTIVE (it shreds the thought).
+- The Void is the **only** protocol that triggers `[REDACTED/PURGED]` status.
+- PDF: Signal Input = `[REDACTED/PURGED]`, Status = `CLEAR`.
+
+## WorryVault UI
+
+- Display Hollow entries as **Somatic Signals** to distinguish them from Purged Void entries.
+- The vault reflection view labels preserved content as "Somatic Signal."
+
+## Audit Table Reference
+
+| PROTOCOL  | SIGNAL INPUT                                | STATUS   |
+|-----------|---------------------------------------------|----------|
+| THE HOLLOW| "My 7th sense is telling me..." (full text) | RECORDED|
+| THE VOID  | [REDACTED/PURGED]                           | CLEAR    |

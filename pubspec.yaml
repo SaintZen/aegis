@@ -1,0 +1,86 @@
+name: anxiety_anchor
+description: Anxiety Anchor Flutter App
+publish_to: 'none'
+version: 1.0.0+2
+
+environment:
+  sdk: '>=2.17.0 <4.0.0'
+
+dependencies:
+  async: ^2.11.0
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  video_player: ^2.8.0
+  smooth_page_indicator: ^2.0.1
+  vibration: ^3.1.4
+  audioplayers: ^6.5.1
+  just_audio: ^0.10.5
+  shared_preferences: ^2.5.4
+  google_fonts: ^6.2.1
+  url_launcher: ^6.3.2
+  file_picker: ^10.3.8
+  share_plus: ^12.0.1
+  intl: ^0.20.2
+  record: ^6.1.2
+  path_provider: ^2.1.5
+  pdf: ^3.10.0
+  printing: ^5.11.0
+  fl_chart: ^0.66.0
+  wakelock_plus: ^1.2.10
+  local_auth: ^2.2.0
+  permission_handler: ^12.0.1
+  audio_waveforms: ^2.0.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.13.1
+
+flutter:
+  generate: true
+  uses-material-design: true
+  
+  assets:
+    - assets/images/app_symbol.png
+    - assets/images/vault_door_thumbnail.png
+    - assets/images/
+    - assets/images/safe_place/
+    - assets/images/frost/
+    - assets/images/kinetic/
+    - assets/images/hollow/
+    - assets/videos/
+    - assets/videos/vault_door.mp4
+    - assets/videos/black_hole.mp4
+    - assets/videos/mountain_bell.mp4
+    - assets/videos/monastery.mp4
+    - assets/videos/desert_oasis.mp4
+    - assets/audio/
+    - assets/audio/kinetic_prompts/wall_push.mp3
+    - assets/audio/kinetic_prompts/the_shake.mp3
+    - assets/audio/kinetic_prompts/isometric.mp3
+    - assets/audio/kinetic_prompts/the_pulse.mp3
+    - assets/audio/ice_scrapping.aac
+    - assets/audio/affirmations/
+    - assets/audio/affirmations/system/sys_on.mp3
+    - assets/audio/affirmations/system/start_tool.mp3
+    - assets/audio/affirmations/system/stop_stealth.mp3
+    - assets/audio/affirmations/system/log_success.mp3
+    - assets/audio/affirmations/system/log_failure.mp3
+    - assets/audio/affirmations/system/log_report.mp3
+    - assets/audio/Blackhole/
+    - assets/audio/kinetic/
+    - assets/audio/pharmacy/
+    - assets/audio/vistas/
+    - assets/audio/vault/
+    - assets/audio/frost/
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/images/app_symbol.png"
+  adaptive_icon_foreground: "assets/images/app_symbol.png"
+  adaptive_icon_background: "#003366"
+

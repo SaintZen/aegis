@@ -1,0 +1,5 @@
+FLUTTER_PATH=C:\src\flutter\flutter\bin\flutter.bat
+
+# Data Handling: The Hollow is ADDITIVE — preserve full Signal Input. NEVER redact.
+# The Void is SUBTRACTIVE — show [REDACTED/PURGED], status CLEAR.
+# See .cursor/rules/data-handling.mdc for full spec.

@@ -1,0 +1,40 @@
+name: Flutter CI
+
+on:
+  pull_request:
+    branches: [ main, master ]
+  push:
+    branches: [ main, master ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable # keep this if you want the stable channel
+          flutter-version: '3.27.1' # pin to a concrete SDK for reproducible builds
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Generate localization
+        run: flutter gen-l10n
+
+      - name: Static analysis
+        run: flutter analyze
+
+      - name: Run tests with coverage
+        run: flutter test --coverage
+
+      - name: Upload coverage artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage

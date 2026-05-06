@@ -1,0 +1,47 @@
+{
+  "@@locale": "en",
+  "support_resources_header": "External Routing",
+  "@support_resources_header": {
+    "description": "Title for the Shield directory block (external routing index)"
+  },
+  "support_resources_intro": "External routing channels. Aegis does not operate medical, legal, or clinical services.",
+  "@support_resources_intro": {
+    "description": "Intro copy above the Shield directory list"
+  },
+  "support_emergency_line": "If someone is in immediate danger, contact emergency services. Aegis cannot respond to emergencies.",
+  "@support_emergency_line": {
+    "description": "Bold red emergency instruction before hotline categories"
+  },
+  "terms_of_use_label": "Terms of Use",
+  "@terms_of_use_label": {
+    "description": "Footer link to terms screen"
+  },
+  "privacy_notice_label": "Privacy Notice",
+  "@privacy_notice_label": {
+    "description": "Footer link to privacy policy screen"
+  },
+  "anchor_motto_latin": "Ancoram Teneo",
+  "@anchor_motto_latin": {
+    "description": "Latin line under Anchor Me Now"
+  },
+  "anchor_motto_translation": "I Hold The Anchor",
+  "@anchor_motto_translation": {
+    "description": "English translation under Latin motto"
+  },
+  "dictionaryTitle": "Dictionary",
+  "@dictionaryTitle": {
+    "description": "App bar title for searchable dictionary"
+  },
+  "dictionarySearchHint": "Search roles",
+  "@dictionarySearchHint": {
+    "description": "Dictionary search field placeholder"
+  },
+  "dictionaryClose": "Close",
+  "@dictionaryClose": {
+    "description": "Dictionary detail dialog dismiss"
+  },
+  "dictionaryNoResults": "No matching entries.",
+  "@dictionaryNoResults": {
+    "description": "Empty state when search has no hits"
+  }
+}
