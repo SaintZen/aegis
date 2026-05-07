@@ -1,4 +1,4 @@
-package com.example.u_scaffold_tmp
+package com.zwischenzug.aegis
 
 import io.flutter.embedding.android.FlutterFragmentActivity
 

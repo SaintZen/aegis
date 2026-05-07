@@ -1,6 +1,6 @@
-# _scaffold_tmp
+# Aegis
 
-A new Flutter project.
+Industrial Somatic Stabilization Instrument.
 
 ## Getting Started
 
