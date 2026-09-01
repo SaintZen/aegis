@@ -9,10 +9,10 @@ import 'package:pdf/widgets.dart' as pw;
 class PdfTransmittal {
   PdfTransmittal._();
 
-  static const String title = 'TRANSMITTAL — NOT A MEDICAL RECORD';
+  static const String title = 'TRANSMITTAL - NOT A MEDICAL RECORD';
 
   static const String banner =
-      'AEGIS EXPORT — NOT A DOCTOR. NOT A MEDICAL RECORD. NOT A DIAGNOSIS.';
+      'AEGIS EXPORT - NOT A DOCTOR. NOT A MEDICAL RECORD. NOT A DIAGNOSIS.';
 
   static const String shareText =
       'Aegis technical export. Not a doctor. Not a medical record. Not a diagnosis.';
@@ -32,7 +32,7 @@ class PdfTransmittal {
 
   static const String lineElection =
       'The operator elected to produce this export. Sending it to a third party, '
-      'including a clinician, is the operator\'s action — not a transmission by Aegis.';
+      'including a clinician, is the operator\'s action - not a transmission by Aegis.';
 
   static const List<String> allOperatorFacing = [
     title,

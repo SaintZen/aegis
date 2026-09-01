@@ -23,10 +23,10 @@ void main() {
   ];
 
   test('operator-facing transmittal copy is locked', () {
-    expect(PdfTransmittal.title, 'TRANSMITTAL — NOT A MEDICAL RECORD');
+    expect(PdfTransmittal.title, 'TRANSMITTAL - NOT A MEDICAL RECORD');
     expect(
       PdfTransmittal.banner,
-      'AEGIS EXPORT — NOT A DOCTOR. NOT A MEDICAL RECORD. NOT A DIAGNOSIS.',
+      'AEGIS EXPORT - NOT A DOCTOR. NOT A MEDICAL RECORD. NOT A DIAGNOSIS.',
     );
     expect(PdfTransmittal.shareText, contains('Not a doctor'));
     expect(PdfTransmittal.shareText, contains('Not a medical record'));
@@ -57,11 +57,15 @@ void main() {
       ),
     );
     final ascii = latin1.decode(await doc.save(), allowInvalid: true);
-    expect(ascii, contains('TRANSMITTAL'));
-    expect(ascii, contains('NOT A MEDICAL RECORD'));
-    expect(ascii, contains('NOT A DOCTOR'));
-    expect(ascii, contains('NOT A DIAGNOSIS'));
-    expect(ascii, contains('operator elected'));
+    final tokens = RegExp(r'\[\(([^)]+)\)\]TJ')
+        .allMatches(ascii)
+        .map((m) => m.group(1)!)
+        .join(' ');
+    expect(tokens, contains('TRANSMITTAL'));
+    expect(tokens, contains('NOT A MEDICAL RECORD'));
+    expect(tokens, contains('NOT A DOCTOR'));
+    expect(tokens, contains('NOT A DIAGNOSIS'));
+    expect(tokens, contains('operator elected'));
   });
 
   test('every PDF writer stamps cover, footer, and sealed temp', () {
