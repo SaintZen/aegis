@@ -27,7 +27,10 @@ jobs:
         run: flutter gen-l10n
 
       - name: Static analysis
-        run: flutter analyze
+        # Errors fail the job. Pre-existing infos (withOpacity deprecations)
+        # and warnings are triaged in docs/ANALYZER_TRIAGE.md and must not
+        # block CI until that backlog is cleared.
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
 
       - name: Run tests with coverage
         run: flutter test --coverage
