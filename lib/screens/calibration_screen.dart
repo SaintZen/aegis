@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:anxiety_anchor/data/safety_handshake_copy.dart';
 import 'package:anxiety_anchor/services/calibration_service.dart';
 import 'package:anxiety_anchor/widgets/emergency_crisis_sheet.dart';
 
@@ -369,7 +370,7 @@ class _CalibrationScreenState extends State<CalibrationScreen> {
       child: OutlinedButton.icon(
         onPressed: _showOperationalDisclaimer,
         icon: const Icon(Icons.description_outlined, size: 20),
-        label: const Text('Re-read Operational Disclaimer'),
+        label: const Text(SafetyHandshakeCopy.rereadLabel),
         style: OutlinedButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 14),
           foregroundColor: Colors.amber,
@@ -385,33 +386,47 @@ class _CalibrationScreenState extends State<CalibrationScreen> {
       builder: (context) {
         return AlertDialog(
           backgroundColor: const Color(0xFF0F1116),
-          title: const Text('Operational Disclaimer'),
+          title: const Text(
+            SafetyHandshakeCopy.title,
+            style: TextStyle(fontFamily: 'RobotoMono', letterSpacing: 1.2),
+          ),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const Text(
-                  'AnxietyAnchor is a grounding tool for stress management and '
-                  'entertainment purposes. It is not a medical device. It does not '
-                  'provide diagnosis, treatment, or medical advice. If you are in '
-                  'crisis, please contact professional emergency services immediately.',
-                  style: TextStyle(color: Colors.white70, height: 1.5),
+                  '${SafetyHandshakeCopy.lineInstrument}\n\n'
+                  '${SafetyHandshakeCopy.lineNotADoctor}\n'
+                  '${SafetyHandshakeCopy.lineNotADevice}\n'
+                  '${SafetyHandshakeCopy.lineNoAdvice}\n'
+                  '${SafetyHandshakeCopy.lineNoReplacement}\n\n'
+                  '${SafetyHandshakeCopy.lineCrisis}',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontFamily: 'RobotoMono',
+                    height: 1.5,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 const Text(
-                  'Sensory Cautions',
+                  SafetyHandshakeCopy.sensoryHeading,
                   style: TextStyle(
                     color: Colors.amber,
+                    fontFamily: 'RobotoMono',
                     fontWeight: FontWeight.w600,
+                    letterSpacing: 1.2,
                   ),
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  "• The Frost: Use caution with cold exposure if you have "
-                  "circulatory or skin sensitivities.\n"
-                  "• The Hollow: Use haptic thrums at a comfortable intensity.",
-                  style: TextStyle(color: Colors.white70, height: 1.5),
+                  '• ${SafetyHandshakeCopy.frostCaution}\n'
+                  '• ${SafetyHandshakeCopy.hollowCaution}',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontFamily: 'RobotoMono',
+                    height: 1.5,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 TextButton.icon(
@@ -421,8 +436,11 @@ class _CalibrationScreenState extends State<CalibrationScreen> {
                   },
                   icon: const Icon(Icons.emergency, color: Colors.redAccent),
                   label: const Text(
-                    'Get Professional Help',
-                    style: TextStyle(color: Colors.redAccent),
+                    SafetyHandshakeCopy.crisisLinesLabel,
+                    style: TextStyle(
+                      color: Colors.redAccent,
+                      fontFamily: 'RobotoMono',
+                    ),
                   ),
                 ),
               ],

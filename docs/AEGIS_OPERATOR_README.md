@@ -12,7 +12,7 @@ flutter test
 
 ## App shell and core flow
 
-- SafetyGateScreen enforces legal/safety acceptance.
+- SafetyGateScreen is the Safety Handshake: plain-English "Not a Doctor" entry gate. Copy is locked in `lib/data/safety_handshake_copy.dart` and reused by Calibration's re-read dialog.
 - SystemInitializationScreen performs one-time asset bootstrap and SharedPreferences init.
 - Main UI is a four-tab shell with a global AEGIS HUD overlay via MaterialApp.builder.
 - Dark theme with CalibrationService toggles for high-visibility and soothe mode.

@@ -1,20 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:anxiety_anchor/data/safety_handshake_copy.dart';
 import 'package:anxiety_anchor/widgets/emergency_crisis_sheet.dart';
 
-/// First-time entry gate with operational disclaimer and sensory cautions.
+/// First-time Safety Handshake: plain-English "Not a Doctor" entry gate.
 /// Persists acceptance via shared_preferences.
 class SafetyGateScreen extends StatefulWidget {
   const SafetyGateScreen({super.key, required this.onAccepted});
 
   final VoidCallback onAccepted;
 
-  static const String _prefsKey = 'safety_gate_accepted';
+  /// SharedPreferences key for handshake acceptance.
+  /// Kept stable so operators who already passed the gate are not re-prompted.
+  static const String prefsKey = 'safety_gate_accepted';
 
   static Future<bool> hasAccepted() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(_prefsKey) ?? false;
+    return prefs.getBool(prefsKey) ?? false;
   }
 
   @override
@@ -22,6 +25,10 @@ class SafetyGateScreen extends StatefulWidget {
 }
 
 class _SafetyGateScreenState extends State<SafetyGateScreen> {
+  static const Color _bg = Color(0xFF000000);
+  static const Color _navy = Color(0xFF001220);
+  static const Color _gold = Color(0xFFFFBF00);
+  static const String _mono = 'RobotoMono';
 
   final ScrollController _scrollController = ScrollController();
   bool _hasScrolledToBottom = false;
@@ -52,10 +59,10 @@ class _SafetyGateScreenState extends State<SafetyGateScreen> {
 
   bool get _canEnter => _hasScrolledToBottom && _checkboxChecked;
 
-  Future<void> _onEnterLab() async {
+  Future<void> _onEnter() async {
     if (!_canEnter) return;
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(SafetyGateScreen._prefsKey, true);
+    await prefs.setBool(SafetyGateScreen.prefsKey, true);
     if (mounted) {
       widget.onAccepted();
     }
@@ -64,7 +71,7 @@ class _SafetyGateScreenState extends State<SafetyGateScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A0A),
+      backgroundColor: _bg,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -72,76 +79,95 @@ class _SafetyGateScreenState extends State<SafetyGateScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Text(
-                'Operational Disclaimer',
+                SafetyHandshakeCopy.title,
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.5,
+                  fontFamily: _mono,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 2.0,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                SafetyHandshakeCopy.lineNotADoctor,
+                style: TextStyle(
+                  color: _gold.withValues(alpha: 0.95),
+                  fontFamily: _mono,
+                  fontSize: 13,
+                  letterSpacing: 0.6,
+                  height: 1.4,
                 ),
               ),
               const SizedBox(height: 20),
               Expanded(
-                child: SingleChildScrollView(
-                  controller: _scrollController,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'AnxietyAnchor is for entertainment and personal grounding '
-                        'only. It is not a medical device and not a substitute for '
-                        'a doctor or professional care. It does not provide '
-                        'diagnosis, treatment, or medical advice. If you are in '
-                        'crisis, contact professional or emergency services immediately.',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.9),
-                          fontSize: 15,
-                          height: 1.6,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Full legal disclaimer and coverage: see Bridge → Full Disclaimer.',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.65),
-                          fontSize: 13,
-                          fontStyle: FontStyle.italic,
-                          height: 1.4,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      TextButton.icon(
-                        onPressed: () => EmergencyCrisisSheet.show(context),
-                        icon: const Icon(Icons.emergency, color: Colors.redAccent),
-                        label: const Text(
-                          'Get Professional Help',
+                child: Container(
+                  color: _navy,
+                  child: SingleChildScrollView(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _body(SafetyHandshakeCopy.lineInstrument),
+                        const SizedBox(height: 12),
+                        _body(SafetyHandshakeCopy.lineNotADoctor),
+                        const SizedBox(height: 8),
+                        _body(SafetyHandshakeCopy.lineNotADevice),
+                        const SizedBox(height: 8),
+                        _body(SafetyHandshakeCopy.lineNoAdvice),
+                        const SizedBox(height: 8),
+                        _body(SafetyHandshakeCopy.lineNoReplacement),
+                        const SizedBox(height: 16),
+                        _body(SafetyHandshakeCopy.lineCrisis),
+                        const SizedBox(height: 16),
+                        Text(
+                          SafetyHandshakeCopy.lineFullLegal,
                           style: TextStyle(
-                            color: Colors.redAccent,
-                            fontWeight: FontWeight.w600,
+                            color: Colors.white.withValues(alpha: 0.55),
+                            fontFamily: _mono,
+                            fontSize: 12,
+                            fontStyle: FontStyle.italic,
+                            height: 1.4,
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 24),
-                      Text(
-                        'Sensory Cautions',
-                        style: TextStyle(
-                          color: Colors.amber.shade200,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
+                        const SizedBox(height: 20),
+                        TextButton.icon(
+                          key: const Key('safety-handshake-crisis-lines'),
+                          onPressed: () => EmergencyCrisisSheet.show(context),
+                          icon: const Icon(
+                            Icons.emergency,
+                            color: Colors.redAccent,
+                          ),
+                          label: const Text(
+                            SafetyHandshakeCopy.crisisLinesLabel,
+                            style: TextStyle(
+                              color: Colors.redAccent,
+                              fontFamily: _mono,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 1.2,
+                            ),
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 12),
-                      _buildBullet(
-                        "The Frost: Use caution with cold exposure if you have "
-                        "circulatory or skin sensitivities.",
-                      ),
-                      const SizedBox(height: 8),
-                      _buildBullet(
-                        "The Hollow: Use haptic thrums at a comfortable intensity.",
-                      ),
-                      const SizedBox(height: 32),
-                      _buildCheckboxSection(),
-                    ],
+                        const SizedBox(height: 24),
+                        Text(
+                          SafetyHandshakeCopy.sensoryHeading,
+                          style: TextStyle(
+                            color: Colors.amber.shade200,
+                            fontFamily: _mono,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 1.4,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        _buildBullet(SafetyHandshakeCopy.frostCaution),
+                        const SizedBox(height: 8),
+                        _buildBullet(SafetyHandshakeCopy.hollowCaution),
+                        const SizedBox(height: 32),
+                        _buildCheckboxSection(),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -149,20 +175,43 @@ class _SafetyGateScreenState extends State<SafetyGateScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _canEnter ? _onEnterLab : null,
+                  key: const Key('safety-handshake-enter'),
+                  onPressed: _canEnter ? _onEnter : null,
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    backgroundColor: _canEnter
-                        ? const Color(0xFFFFBF00)
-                        : Colors.white24,
+                    backgroundColor: _canEnter ? _gold : Colors.white24,
                     foregroundColor: _canEnter ? Colors.black : Colors.white54,
+                    disabledBackgroundColor: Colors.white24,
+                    disabledForegroundColor: Colors.white54,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
-                  child: const Text('Enter Lab'),
+                  child: const Text(
+                    SafetyHandshakeCopy.enterLabel,
+                    style: TextStyle(
+                      fontFamily: _mono,
+                      letterSpacing: 2.0,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ),
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _body(String text) {
+    return Text(
+      text,
+      style: TextStyle(
+        color: Colors.white.withValues(alpha: 0.9),
+        fontFamily: _mono,
+        fontSize: 14,
+        height: 1.55,
       ),
     );
   }
@@ -175,7 +224,8 @@ class _SafetyGateScreenState extends State<SafetyGateScreen> {
           '• ',
           style: TextStyle(
             color: Colors.amber.shade200,
-            fontSize: 16,
+            fontFamily: _mono,
+            fontSize: 14,
             height: 1.5,
           ),
         ),
@@ -183,8 +233,9 @@ class _SafetyGateScreenState extends State<SafetyGateScreen> {
           child: Text(
             text,
             style: TextStyle(
-              color: Colors.white.withOpacity(0.85),
-              fontSize: 14,
+              color: Colors.white.withValues(alpha: 0.85),
+              fontFamily: _mono,
+              fontSize: 13,
               height: 1.5,
             ),
           ),
@@ -204,12 +255,13 @@ class _SafetyGateScreenState extends State<SafetyGateScreen> {
             width: 28,
             height: 28,
             child: Checkbox(
+              key: const Key('safety-handshake-checkbox'),
               value: _checkboxChecked,
               onChanged: (v) => setState(() => _checkboxChecked = v ?? false),
-              activeColor: const Color(0xFFFFBF00),
+              activeColor: _gold,
               fillColor: WidgetStateProperty.resolveWith((states) {
                 if (states.contains(WidgetState.selected)) {
-                  return const Color(0xFFFFBF00);
+                  return _gold;
                 }
                 return Colors.white24;
               }),
@@ -220,10 +272,11 @@ class _SafetyGateScreenState extends State<SafetyGateScreen> {
             child: Padding(
               padding: const EdgeInsets.only(top: 4),
               child: Text(
-                'I understand this is a grounding tool, not medical treatment.',
+                SafetyHandshakeCopy.checkboxLabel,
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.9),
-                  fontSize: 14,
+                  color: Colors.white.withValues(alpha: 0.9),
+                  fontFamily: _mono,
+                  fontSize: 13,
                   height: 1.4,
                 ),
               ),
