@@ -55,6 +55,16 @@ class PrivacyPolicyScreen extends StatelessWidget {
               style: _bodyStyle,
             ),
             SizedBox(height: 20),
+            Text('CLOUD BACKUP', style: _headingStyle),
+            SizedBox(height: 8),
+            Text(
+              'Aegis marks its on-device stores as excluded from iCloud Backup and Finder backup on Apple platforms, '
+              'and disables Google cloud backup on Android. Ledger, Vault, Hollow, and Four Gates records stay on '
+              'the instrument. Exporting a PDF or sharing a file is an operator action and is the only intended '
+              'off-device path.',
+              style: _bodyStyle,
+            ),
+            SizedBox(height: 20),
             Text('EXPORTS & SHARING', style: _headingStyle),
             SizedBox(height: 8),
             Text(

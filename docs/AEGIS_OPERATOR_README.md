@@ -15,6 +15,7 @@ flutter test
 - SafetyGateScreen enforces legal/safety acceptance.
 - SystemInitializationScreen performs one-time asset bootstrap and SharedPreferences init.
 - Main UI is a four-tab shell with a global AEGIS HUD overlay via MaterialApp.builder.
+- LocalSovereignty seals iOS Documents/Preferences against iCloud backup on launch, resume, and ledger write. Android `allowBackup` is false. App Switcher is covered by SovereigntyVeil.
 - Dark theme with CalibrationService toggles for high-visibility and soothe mode.
 - Localization via generated AppLocalizations (English present).
 

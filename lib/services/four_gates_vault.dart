@@ -9,6 +9,9 @@ import 'package:anxiety_anchor/models/four_gates_run.dart';
 /// Stores at most [maxRuns] runs (most recent first) as a JSON string list
 /// under [_storageKey]. No PII is emitted to telemetry from this file; the
 /// evidence text lives only on-device in `SharedPreferences`.
+/// iOS/Android cloud backup of that store is disabled at the container
+/// level (`LocalSovereignty` / backup exclusion). Runs are not eligible
+/// for iCloud or Google cloud backup.
 class FourGatesVault {
   FourGatesVault({SharedPreferences? prefs}) : _prefs = prefs;
 
