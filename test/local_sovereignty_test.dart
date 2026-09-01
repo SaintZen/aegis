@@ -39,6 +39,10 @@ void main() {
     expect(find.text('CLOUD BACKUP'), findsOneWidget);
     expect(find.textContaining('iCloud Backup'), findsOneWidget);
     expect(find.textContaining('Google cloud backup'), findsOneWidget);
+    expect(find.text('EXPORTS & SHARING'), findsOneWidget);
+    expect(find.textContaining('NOT A MEDICAL RECORD'), findsOneWidget);
+    expect(find.textContaining('doctor transmittal'), findsOneWidget);
+    expect(find.textContaining('temporary storage'), findsOneWidget);
   });
 
   test('seal is a no-op off iOS', () async {

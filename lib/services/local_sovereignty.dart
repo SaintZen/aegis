@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:path_provider/path_provider.dart';
 
 /// Keeps Aegis data off vendor cloud backup.
 ///
@@ -33,5 +36,19 @@ class LocalSovereignty {
     } catch (_) {
       // Backup exclusion must never crash the instrument.
     }
+  }
+
+  /// Write an operator-facing PDF into tmp (not Documents) and re-seal.
+  /// Tmp is already ineligible for iCloud backup; the seal covers any
+  /// host that later copies the bytes into the app container.
+  static Future<File> writeSealedTemp({
+    required String fileName,
+    required List<int> bytes,
+  }) async {
+    final directory = await getTemporaryDirectory();
+    final file = File('${directory.path}/$fileName');
+    await file.writeAsBytes(bytes, flush: true);
+    await seal();
+    return file;
   }
 }

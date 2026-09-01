@@ -1,18 +1,20 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
+import 'package:anxiety_anchor/data/pdf_transmittal.dart';
 import 'package:anxiety_anchor/models/advocacy_log_entry.dart';
 import 'package:anxiety_anchor/models/journal_entry.dart';
 import 'package:anxiety_anchor/services/advocacy_log_service.dart';
 import 'package:anxiety_anchor/services/calibration_service.dart';
 import 'package:anxiety_anchor/services/clinical_log_service.dart';
+import 'package:anxiety_anchor/services/local_sovereignty.dart';
 
 class JournalExportService {
   static Future<File?> exportToDoctor(
@@ -25,11 +27,12 @@ class JournalExportService {
     }
 
     final pdfBytes = await _buildPdfBytes(entries, patientNote: patientNote);
-    final directory = await getTemporaryDirectory();
     final fileName =
-        'Xanadu_Summary_${DateFormat('yyyy-MM-dd').format(DateTime.now())}.pdf';
-    final file = File('${directory.path}/$fileName');
-    await file.writeAsBytes(pdfBytes, flush: true);
+        'Aegis_Doctor_Transmittal_${DateFormat('yyyy-MM-dd').format(DateTime.now())}.pdf';
+    final file = await LocalSovereignty.writeSealedTemp(
+      fileName: fileName,
+      bytes: pdfBytes,
+    );
 
     if (showPrintPreview) {
       await Printing.layoutPdf(
@@ -68,25 +71,31 @@ class JournalExportService {
     final logoBytes = await rootBundle.load('assets/images/app_symbol.png');
     final logo = pw.MemoryImage(logoBytes.buffer.asUint8List());
     final dateFormatter = DateFormat('MMM dd, yyyy - hh:mm a');
+    final monoFont = pw.Font.courier();
 
     doc.addPage(
       pw.MultiPage(
         pageTheme: const pw.PageTheme(
           margin: pw.EdgeInsets.all(32),
         ),
-        footer: (context) => pw.Container(
-          alignment: pw.Alignment.centerLeft,
-          padding: const pw.EdgeInsets.only(top: 8),
-          child: pw.Text(
-            sovereigntyDisclaimer,
-            style: pw.TextStyle(
-              fontSize: 8,
-              color: PdfColors.grey600,
-              fontStyle: pw.FontStyle.italic,
+        footer: (context) => pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            PdfTransmittal.pageFooter(monoFont),
+            pw.SizedBox(height: 4),
+            pw.Text(
+              sovereigntyDisclaimer,
+              style: pw.TextStyle(
+                fontSize: 8,
+                color: PdfColors.grey600,
+                fontStyle: pw.FontStyle.italic,
+              ),
             ),
-          ),
+          ],
         ),
         build: (context) => [
+          PdfTransmittal.cover(monoFont),
+          pw.SizedBox(height: 16),
           pw.Row(
             crossAxisAlignment: pw.CrossAxisAlignment.center,
             children: [
