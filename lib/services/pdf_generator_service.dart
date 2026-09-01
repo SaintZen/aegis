@@ -1,14 +1,15 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:anxiety_anchor/data/pdf_transmittal.dart';
 import 'package:anxiety_anchor/models/four_gates_run.dart';
 import 'package:anxiety_anchor/models/pending_retest.dart';
 import 'package:anxiety_anchor/services/aegis_log_service.dart';
 import 'package:anxiety_anchor/services/pending_retest_store.dart';
+import 'package:anxiety_anchor/services/local_sovereignty.dart';
 import 'package:anxiety_anchor/services/vault_service.dart';
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:intl/intl.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
@@ -44,11 +45,12 @@ class PdfGeneratorService {
     final data = await _buildAuditPdfDataWithPlaceholder();
 
     final pdfBytes = await _buildPdf(data);
-    final directory = await getTemporaryDirectory();
     final fileName =
         'Technical_Audit_Log_${DateFormat('yyyyMMdd_HHmmss_SSS').format(DateTime.now())}.pdf';
-    final file = File('${directory.path}/$fileName');
-    await file.writeAsBytes(pdfBytes, flush: true);
+    final file = await LocalSovereignty.writeSealedTemp(
+      fileName: fileName,
+      bytes: pdfBytes,
+    );
 
     if (showPrintPreview) {
       await Printing.layoutPdf(
@@ -223,7 +225,10 @@ class PdfGeneratorService {
             bold: pw.Font.helveticaBold(),
           ),
         ),
+        footer: (context) => PdfTransmittal.pageFooter(monoFont),
         build: (context) => [
+          PdfTransmittal.cover(monoFont),
+          pw.SizedBox(height: 16),
           _buildHeader(monoFont),
           pw.SizedBox(height: 24),
           _buildHollowSection(data.hollowEntries, monoFont),

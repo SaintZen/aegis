@@ -25,6 +25,8 @@ import 'package:anxiety_anchor/screens/kinetic_armory_screen.dart';
 import 'package:anxiety_anchor/screens/kinetic_action_screen.dart';
 import 'package:anxiety_anchor/screens/safety_gate_screen.dart';
 import 'package:anxiety_anchor/services/calibration_service.dart';
+import 'package:anxiety_anchor/services/local_sovereignty.dart';
+import 'package:anxiety_anchor/widgets/sovereignty_veil.dart';
 import 'package:anxiety_anchor/screens/system_initialization_screen.dart';
 import 'package:anxiety_anchor/screens/personal_audio_library_screen.dart';
 import 'package:anxiety_anchor/screens/resource_detail_screen.dart';
@@ -49,6 +51,7 @@ import 'package:anxiety_anchor/models/exercise.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await CalibrationService.preload();
+  await LocalSovereignty.seal();
   runApp(const AnxietyAnchorApp());
 }
 
@@ -71,23 +74,25 @@ class AnxietyAnchorApp extends StatelessWidget {
               home: const LegalGate(),
               builder: (context, child) {
                 if (child == null) return const SizedBox.shrink();
-                return Stack(
-                  children: [
-                    child,
-                    Positioned(
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      child: SafeArea(
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
-                          child: Builder(
-                            builder: (ctx) => _AegisHudHeader(context: ctx),
+                return SovereigntyShell(
+                  child: Stack(
+                    children: [
+                      child,
+                      Positioned(
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        child: SafeArea(
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+                            child: Builder(
+                              builder: (ctx) => _AegisHudHeader(context: ctx),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 );
               },
               routes: {
@@ -473,6 +478,7 @@ class _LegalGateState extends State<LegalGate> {
     } catch (e) {
       debugPrint('Asset bootstrap error: $e');
     } finally {
+      await LocalSovereignty.seal();
       if (mounted) {
         setState(() => _assetsBootstrapped = true);
       }

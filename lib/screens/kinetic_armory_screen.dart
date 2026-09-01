@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:share_plus/share_plus.dart';
 
+import 'package:anxiety_anchor/data/pdf_transmittal.dart';
 import 'package:anxiety_anchor/services/kinetic_voice_engine.dart';
 import 'package:anxiety_anchor/services/haptics/somatic_controller.dart';
 import 'package:anxiety_anchor/services/intel_export_service.dart';
@@ -88,7 +89,7 @@ class _KineticArmoryScreenState extends State<KineticArmoryScreen> {
     await _somaticController?.playSystemVoice('log_report');
     await Share.shareXFiles(
       [XFile(file.path)],
-      text: 'Tactical Neuro-Stability Log',
+      text: PdfTransmittal.shareText,
     );
     await file.delete();
   }

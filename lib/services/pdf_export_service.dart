@@ -1,15 +1,15 @@
 import 'dart:io';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:intl/intl.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
-import 'dart:typed_data';
-
+import 'package:anxiety_anchor/data/pdf_transmittal.dart';
 import 'package:anxiety_anchor/services/aegis_log_service.dart';
+import 'package:anxiety_anchor/services/local_sovereignty.dart';
 
 /// Exports AEGIS System Audit Report as a PDF with Tabular Ledger layout.
 /// Black Box style: monospaced, clean borders, no diatribes.
@@ -31,11 +31,12 @@ class PDFExportService {
 
     final reportId = _generateReportId();
     final pdfBytes = await _buildPdf(entries, reportId: reportId);
-    final directory = await getTemporaryDirectory();
     final fileName =
         'AEGIS_Audit_${DateFormat('yyyy-MM-dd').format(DateTime.now())}.pdf';
-    final file = File('${directory.path}/$fileName');
-    await file.writeAsBytes(pdfBytes, flush: true);
+    final file = await LocalSovereignty.writeSealedTemp(
+      fileName: fileName,
+      bytes: pdfBytes,
+    );
 
     if (showPrintPreview) {
       await Printing.layoutPdf(
@@ -71,7 +72,10 @@ class PDFExportService {
             bold: pw.Font.helveticaBold(),
           ),
         ),
+        footer: (context) => PdfTransmittal.pageFooter(monoFont),
         build: (context) => [
+          PdfTransmittal.cover(monoFont),
+          pw.SizedBox(height: 16),
           _buildHeader(reportId, monoFont),
           pw.SizedBox(height: 24),
           _buildHollowSection(hollowEntries, monoFont),

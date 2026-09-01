@@ -1,10 +1,9 @@
-import 'dart:io';
-
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'package:anxiety_anchor/data/pdf_transmittal.dart';
+import 'package:anxiety_anchor/services/local_sovereignty.dart';
 import 'package:anxiety_anchor/widgets/contact_row.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -106,17 +105,21 @@ Signature / date: _______________
   Future<void> _downloadComplaintTemplate() async {
     try {
       final doc = pw.Document();
+      final monoFont = pw.Font.courier();
       doc.addPage(
         pw.MultiPage(
           pageFormat: PdfPageFormat.letter,
           margin: const pw.EdgeInsets.all(40),
+          footer: (context) => PdfTransmittal.pageFooter(monoFont),
           build: (context) => [
+            PdfTransmittal.cover(monoFont),
+            pw.SizedBox(height: 16),
             pw.Text(
               'AEGIS — COMPLAINT TEMPLATE',
               style: pw.TextStyle(
                 fontSize: 14,
                 fontWeight: pw.FontWeight.bold,
-                font: pw.Font.courier(),
+                font: monoFont,
               ),
             ),
             pw.SizedBox(height: 8),
@@ -124,7 +127,7 @@ Signature / date: _______________
               'Aegis-formatted structure for regulatory filings.',
               style: pw.TextStyle(
                 fontSize: 9,
-                font: pw.Font.courier(),
+                font: monoFont,
                 color: PdfColors.grey700,
               ),
             ),
@@ -134,20 +137,22 @@ Signature / date: _______________
               style: pw.TextStyle(
                 fontSize: 9,
                 lineSpacing: 1.35,
-                font: pw.Font.courier(),
+                font: monoFont,
               ),
             ),
           ],
         ),
       );
       final bytes = await doc.save();
-      final dir = await getTemporaryDirectory();
-      final file = File('${dir.path}/aegis_complaint_template.pdf');
-      await file.writeAsBytes(bytes);
+      final file = await LocalSovereignty.writeSealedTemp(
+        fileName: 'aegis_complaint_template.pdf',
+        bytes: bytes,
+      );
       if (!mounted) return;
       await Share.shareXFiles(
         [XFile(file.path)],
         subject: 'Aegis complaint template',
+        text: PdfTransmittal.shareText,
       );
     } catch (e) {
       if (!mounted) return;

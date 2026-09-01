@@ -1,22 +1,23 @@
 import 'dart:io';
 
 import 'package:intl/intl.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
+import 'package:anxiety_anchor/data/pdf_transmittal.dart';
+import 'package:anxiety_anchor/services/local_sovereignty.dart';
 import 'package:anxiety_anchor/services/usage_log_service.dart';
 
 class IntelExportService {
   static Future<File?> exportIntel() async {
     final entries = await UsageLogService.getEntries();
     final pdfBytes = await _buildPdf(entries);
-    final directory = await getTemporaryDirectory();
     final fileName =
         'Tactical_NeuroStability_Log_${DateFormat('yyyy-MM-dd').format(DateTime.now())}.pdf';
-    final file = File('${directory.path}/$fileName');
-    await file.writeAsBytes(pdfBytes, flush: true);
-    return file;
+    return LocalSovereignty.writeSealedTemp(
+      fileName: fileName,
+      bytes: pdfBytes,
+    );
   }
 
   static Future<List<int>> _buildPdf(List<UsageLogEntry> entries) async {
@@ -61,20 +62,10 @@ class IntelExportService {
             bold: pw.Font.helveticaBold(),
           ),
         ),
-        footer: (context) => pw.Padding(
-          padding: const pw.EdgeInsets.only(top: 16),
-          child: pw.Center(
-            child: pw.Text(
-              'Confidentiality',
-              style: pw.TextStyle(
-                fontSize: 8,
-                color: PdfColors.grey500,
-                font: monoFont,
-              ),
-            ),
-          ),
-        ),
+        footer: (context) => PdfTransmittal.pageFooter(monoFont),
         build: (context) => [
+          PdfTransmittal.cover(monoFont),
+          pw.SizedBox(height: 16),
           pw.Text(
             'Tactical Neuro-Stability Log',
             style: pw.TextStyle(

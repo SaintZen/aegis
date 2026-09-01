@@ -55,11 +55,23 @@ class PrivacyPolicyScreen extends StatelessWidget {
               style: _bodyStyle,
             ),
             SizedBox(height: 20),
+            Text('CLOUD BACKUP', style: _headingStyle),
+            SizedBox(height: 8),
+            Text(
+              'Aegis marks its on-device stores as excluded from iCloud Backup and Finder backup on Apple platforms, '
+              'and disables Google cloud backup on Android. Ledger, Vault, Hollow, and Four Gates records stay on '
+              'the instrument. Operator-elected PDF export is the only intended off-device path.',
+              style: _bodyStyle,
+            ),
+            SizedBox(height: 20),
             Text('EXPORTS & SHARING', style: _headingStyle),
             SizedBox(height: 8),
             Text(
-              'When you print, export PDFs, share files, or open external links, data leaves the app under your '
-              'control. You decide what to send and to whom.',
+              'Every operator-elected PDF (technical audit log, doctor transmittal, intel log, complaint template) '
+              'is written to temporary storage — not Documents — and sealed from cloud backup. Each file is stamped '
+              'NOT A DOCTOR / NOT A MEDICAL RECORD on the cover and on every page. Aegis does not send the file to a '
+              'clinician; producing and sharing it is the operator\'s action. The stamp is a transmittal mark. '
+              'Aegis does not transmit a medical record.',
               style: _bodyStyle,
             ),
             SizedBox(height: 20),

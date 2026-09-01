@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 
+import 'package:anxiety_anchor/data/pdf_transmittal.dart';
 import 'package:anxiety_anchor/services/clinical_log_service.dart';
 import 'package:anxiety_anchor/services/journal_export_service.dart';
 import 'package:anxiety_anchor/models/journal_entry.dart';
@@ -306,7 +307,7 @@ class _PDFPreviewScreenState extends State<PDFPreviewScreen> {
       if (file == null) return;
       await Share.shareXFiles(
         [XFile(file.path)],
-        text: 'My Protocol Report',
+        text: PdfTransmittal.shareText,
       );
     } finally {
       if (mounted) {

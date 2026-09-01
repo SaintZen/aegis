@@ -3,6 +3,8 @@ import 'dart:io';
 
 import 'package:path_provider/path_provider.dart';
 
+import 'package:anxiety_anchor/services/local_sovereignty.dart';
+
 class AegisLogService {
   static const _fileName = 'aegis_log.json';
 
@@ -21,6 +23,7 @@ class AegisLogService {
     final existing = await _readEntries(file);
     existing.add(entry);
     await file.writeAsString(jsonEncode(existing));
+    await LocalSovereignty.seal();
   }
 
   /// Logs an audit entry (tool/session shape). [signalInput] stored exactly as provided.
@@ -39,6 +42,7 @@ class AegisLogService {
     final existing = await _readEntries(file);
     existing.add(entry);
     await file.writeAsString(jsonEncode(existing));
+    await LocalSovereignty.seal();
   }
 
   static Future<File> _logFile() async {
