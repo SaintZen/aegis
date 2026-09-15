@@ -46,7 +46,7 @@ class _VaultTimerViewState extends State<VaultTimerView> {
 
   void _bootstrapPhase() {
     final e = widget.entry;
-    if (e.remainingTime <= Duration.zero) {
+    if (e.isReleased) {
       _phase = _VaultUiPhase.unlockFlash;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _runUnlockFlash();
@@ -76,7 +76,7 @@ class _VaultTimerViewState extends State<VaultTimerView> {
     final e = widget.entry;
 
     if (_phase == _VaultUiPhase.earlyReflection) {
-      if (e.remainingTime <= Duration.zero) {
+      if (e.isReleased) {
         _ticker?.cancel();
         _runUnlockFlash();
         return;
@@ -90,7 +90,7 @@ class _VaultTimerViewState extends State<VaultTimerView> {
     }
 
     if (_phase == _VaultUiPhase.sealedCountdown) {
-      if (e.remainingTime <= Duration.zero) {
+      if (e.isReleased) {
         _ticker?.cancel();
         _runUnlockFlash();
         return;
@@ -147,7 +147,8 @@ class _VaultTimerViewState extends State<VaultTimerView> {
   }
 
   Widget _buildEarlyReflection() {
-    final clock = _formatVaultRemaining(widget.entry.reflectionRemainingTime);
+    final clock =
+        _formatVaultRemaining(widget.entry.reflectionRemainingTimeClamped);
     return _aegisBlackShell(
       child: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
@@ -281,7 +282,7 @@ class _VaultTimerViewState extends State<VaultTimerView> {
   }
 
   Widget _buildSealedCountdown() {
-    final clock = _formatVaultRemaining(widget.entry.remainingTime);
+    final clock = _formatVaultRemaining(widget.entry.remainingTimeClamped);
     return _aegisBlackShell(
       child: Center(
         child: Padding(
