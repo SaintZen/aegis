@@ -115,7 +115,13 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(24, 8, 24, 8),
+            padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+            child: _ScramBar(
+              onFire: () => Navigator.pushNamed(context, '/scram'),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -256,4 +262,125 @@ class _HomeScreenState extends State<HomeScreen> {
     Navigator.pushNamed(context, '/rescue-breathing');
   }
 
+}
+
+/// The discoverable front door to SCRAM. A press-and-hold (with a filling bar)
+/// matches the doctrine's 1.25s intentionality, prevents accidental taps, and
+/// teaches the same gesture that fires silently on the Bridge anchor. Styled
+/// as an override — distinct from the anchor card, never an alarm.
+class _ScramBar extends StatefulWidget {
+  const _ScramBar({required this.onFire});
+
+  final VoidCallback onFire;
+
+  @override
+  State<_ScramBar> createState() => _ScramBarState();
+}
+
+class _ScramBarState extends State<_ScramBar>
+    with SingleTickerProviderStateMixin {
+  static const Duration _holdDuration = Duration(milliseconds: 1250);
+
+  late final AnimationController _fill;
+  bool _fired = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _fill = AnimationController(vsync: this, duration: _holdDuration)
+      ..addStatusListener((status) {
+        if (status == AnimationStatus.completed && !_fired) {
+          _fired = true;
+          HapticFeedback.heavyImpact();
+          widget.onFire();
+          _fill.reverse();
+        }
+      });
+  }
+
+  void _startHold() {
+    _fired = false;
+    HapticFeedback.selectionClick();
+    _fill.forward(from: 0.0);
+  }
+
+  void _endHold() {
+    if (!_fired) _fill.reverse();
+  }
+
+  @override
+  void dispose() {
+    _fill.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => _startHold(),
+      onTapUp: (_) => _endHold(),
+      onTapCancel: _endHold,
+      behavior: HitTestBehavior.opaque,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(6),
+        child: Stack(
+          children: [
+            Container(
+              width: double.infinity,
+              height: 52,
+              decoration: BoxDecoration(
+                color: const Color(0xFF0A0A0A),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: Colors.white24),
+              ),
+            ),
+            // Fill sweeps as the hold progresses.
+            AnimatedBuilder(
+              animation: _fill,
+              builder: (context, _) {
+                return FractionallySizedBox(
+                  widthFactor: _fill.value.clamp(0.0, 1.0),
+                  child: Container(
+                    height: 52,
+                    color: const Color(0xFF001A33),
+                  ),
+                );
+              },
+            ),
+            SizedBox(
+              height: 52,
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'SCRAM',
+                      style: TextStyle(
+                        color: const Color(0xFFFFBF00).withValues(alpha: 0.92),
+                        fontFamily: 'RobotoMono',
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 4.0,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'HOLD TO ENGAGE — EMERGENCY STABILIZE',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.5),
+                        fontFamily: 'RobotoMono',
+                        fontSize: 8.5,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

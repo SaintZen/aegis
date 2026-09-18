@@ -23,9 +23,9 @@ class KineticActionScreen extends StatefulWidget {
 
 class _KineticActionScreenState extends State<KineticActionScreen>
     with TickerProviderStateMixin {
-  Timer? _killTimer;
+  Timer? _emergencyStopTimer;
   bool _running = false;
-  bool _showKillFlash = false;
+  bool _showStopFlash = false;
   String? _auditText;
   late final AnimationController _glitchController;
   late final AnimationController _noiseController;
@@ -70,7 +70,7 @@ class _KineticActionScreenState extends State<KineticActionScreen>
 
   @override
   void dispose() {
-    _killTimer?.cancel();
+    _emergencyStopTimer?.cancel();
     _auditClearTimer?.cancel();
     _somaticController?.dispose();
     _glitchController.dispose();
@@ -78,25 +78,25 @@ class _KineticActionScreenState extends State<KineticActionScreen>
     super.dispose();
   }
 
-  void _startKillTimer() {
-    _killTimer?.cancel();
-    _killTimer = Timer(const Duration(seconds: 3), _emergencyStop);
+  void _startEmergencyStopTimer() {
+    _emergencyStopTimer?.cancel();
+    _emergencyStopTimer = Timer(const Duration(seconds: 3), _emergencyStop);
   }
 
-  void _cancelKillTimer() {
-    _killTimer?.cancel();
-    _killTimer = null;
+  void _cancelEmergencyStopTimer() {
+    _emergencyStopTimer?.cancel();
+    _emergencyStopTimer = null;
   }
 
   Future<void> _emergencyStop() async {
-    _killTimer?.cancel();
+    _emergencyStopTimer?.cancel();
     await _somaticController?.emergencyStop();
     await AegisLogService.logEntry(
       toolName: _toolLabel(widget.exerciseType),
       status: 'Aborted',
     );
     if (!mounted) return;
-    setState(() => _showKillFlash = true);
+    setState(() => _showStopFlash = true);
     await Future.delayed(const Duration(milliseconds: 100));
     if (!mounted) return;
     Navigator.pop(context);
@@ -412,9 +412,10 @@ class _KineticActionScreenState extends State<KineticActionScreen>
                   child: _buildGlitchText(_auditText!),
                 ),
               ),
-            if (_showKillFlash)
+            if (_showStopFlash)
               Positioned.fill(
-                child: Container(color: Colors.red),
+                // Calm navy wash on abort — the system going dark, not an alarm.
+                child: Container(color: const Color(0xFF001220)),
               ),
             if (_stealthMode)
               const Positioned(

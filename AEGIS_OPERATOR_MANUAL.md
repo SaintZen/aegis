@@ -54,7 +54,7 @@ It is intentionally cold, symmetrical, and minimal.
 
 - Monolith Anchor (40% width):  
   A digital mass used for grounding.  
-  Responds to touch, hold, and Kill Switch activation.
+  Responds to touch, hold, and SCRAM activation.
 - 4/8/24 Data:  
   A fixed temporal anchor.  
   Provides continuity during destabilization.
@@ -207,9 +207,9 @@ This cycle is the core of Aegis.
 4. System logs event
 5. Bridge restores baseline
 
-### 4.2 Emergency Flow (Kill Switch)
+### 4.2 Emergency Flow (SCRAM)
 
-1. Long press on Anchor
+1. Long press on Anchor (1.25s)
 2. Immediate drop into Void
 3. Forced purge
 4. Confirmation

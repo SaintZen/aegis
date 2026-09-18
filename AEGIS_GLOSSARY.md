@@ -7,7 +7,7 @@ Unified Terminology for Somatic Stabilization — V1.0
 ### Anchor (Monolith Anchor)
 
 A central grounding mass on the Bridge.  
-Used for compression holds, Kill Switch activation, and somatic stabilization.
+Used for compression holds, SCRAM activation, and somatic stabilization.
 
 ### Anchor Hold
 
@@ -38,9 +38,9 @@ Metaphor for subsurface turbulence—rapid, pre-cognitive internal motion beneat
 The geological record of system activity.  
 Logs Purge Events, Hollow activations, Anchor holds, Vault deposits, and uptime.
 
-### Drop (Kill Switch Drop)
+### Drop (SCRAM Drop)
 
-The moment the system transitions from Bridge to Void after Kill Switch activation.
+The moment the system transitions from Bridge to Void after SCRAM activation.
 
 ## E
 
@@ -53,7 +53,7 @@ Measured indirectly through system events.
 
 ### Freeze Lockout
 
-Temporary UI suspension during Kill Switch activation to prevent interference.
+Temporary UI suspension during SCRAM activation to prevent interference.
 
 ## G
 
@@ -89,13 +89,6 @@ The 6-second breathing ring cycle that synchronizes with somatic rhythm.
 
 System confirmation message after a successful purge.  
 Indicates subsurface energy has been discharged.
-
-## K
-
-### Kill Switch
-
-Somatic Override Pathway.  
-Long press on Anchor -> immediate Void entry -> forced purge.
 
 ## L
 
@@ -138,6 +131,12 @@ Not emotional.
 Purely structural.
 
 ## S
+
+### SCRAM
+
+Somatic Override Pathway (formerly "Kill Switch").  
+Long press on Anchor -> immediate Void entry -> forced purge.  
+Named for the reactor emergency-shutdown: decisive and protective, never violent.
 
 ### Signal
 

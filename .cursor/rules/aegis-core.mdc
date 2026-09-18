@@ -26,10 +26,15 @@ Aegis is an Industrial Somatic Stabilization Instrument.
 - **Haptics:** Actuation on `onPointerDown`. Escalation: Light -> Medium -> Heavy -> Snap.
 - **Typography:** Strictly monospaced (Courier / Roboto Mono).
 
-## 4. THE KILL SWITCH (PRIORITY 0)
+## 4. THE SCRAM (PRIORITY 0)
+Formerly "Kill Switch." Renamed to SCRAM — the reactor emergency-shutdown that
+halts a runaway reaction. Decisive and protective, never violent. No "kill"
+language anywhere in the Aegis surface.
 - **Trigger:** 1.25s Long Press on Monolith Anchor.
 - **Action:** Universal interrupt. Immediate drop into Void.
 - **Sequence:** Lockout -> Navy Fade -> Shredding -> Snap -> Return to Bridge.
+- **Color:** Calm (obsidian/navy). Never alarm-red — the system goes dark, it
+  does not sound an alarm.
 
 ## 5. GLOSSARY (TECHNICAL DEFINITIONS)
 - **Signal:** A pre-cognitive somatic spike.

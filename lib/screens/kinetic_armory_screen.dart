@@ -17,14 +17,14 @@ class KineticArmoryScreen extends StatefulWidget {
 }
 
 class _KineticArmoryScreenState extends State<KineticArmoryScreen> {
-  Timer? _killTimer;
+  Timer? _emergencyStopTimer;
   bool _stealthMode = false;
   List<String> _recommendations = const [];
   SomaticController? _somaticController;
 
   @override
   void dispose() {
-    _killTimer?.cancel();
+    _emergencyStopTimer?.cancel();
     _somaticController?.dispose();
     super.dispose();
   }
@@ -58,14 +58,14 @@ class _KineticArmoryScreenState extends State<KineticArmoryScreen> {
     _somaticController?.setMuteAudio(updated);
   }
 
-  void _startKillTimer() {
-    _killTimer?.cancel();
-    _killTimer = Timer(const Duration(seconds: 3), _emergencyStop);
+  void _startEmergencyStopTimer() {
+    _emergencyStopTimer?.cancel();
+    _emergencyStopTimer = Timer(const Duration(seconds: 3), _emergencyStop);
   }
 
-  void _cancelKillTimer() {
-    _killTimer?.cancel();
-    _killTimer = null;
+  void _cancelEmergencyStopTimer() {
+    _emergencyStopTimer?.cancel();
+    _emergencyStopTimer = null;
   }
 
   Future<void> _emergencyStop() async {
@@ -147,9 +147,9 @@ class _KineticArmoryScreenState extends State<KineticArmoryScreen> {
         ],
       ),
       body: GestureDetector(
-        onLongPressStart: (_) => _startKillTimer(),
-        onLongPressEnd: (_) => _cancelKillTimer(),
-        onLongPressCancel: _cancelKillTimer,
+        onLongPressStart: (_) => _startEmergencyStopTimer(),
+        onLongPressEnd: (_) => _cancelEmergencyStopTimer(),
+        onLongPressCancel: _cancelEmergencyStopTimer,
         child: Container(
           decoration: const BoxDecoration(
             gradient: RadialGradient(

@@ -1,10 +1,16 @@
-# AEGIS KILL SWITCH SPECIFICATION
+# AEGIS SCRAM SPECIFICATION
 
 Somatic Override Pathway — V1.0
 
+> Formerly "Kill Switch." Renamed to **SCRAM** — the reactor emergency-shutdown
+> that halts a runaway reaction. Decisive and protective, never violent. No
+> "kill" language appears anywhere in the Aegis surface.
+> (Filename retained for now to preserve index links; a `git mv` to
+> `AEGIS_SCRAM_SPECIFICATION.md` is a safe follow-up.)
+
 ## 0. PURPOSE
 
-The Kill Switch provides a rapid-entry stabilization pathway for moments when the operator cannot navigate the system manually.
+The SCRAM provides a rapid-entry stabilization pathway for moments when the operator cannot navigate the system manually.
 
 It bypasses:
 
@@ -16,11 +22,11 @@ It bypasses:
 
 It delivers the user directly into the Void for immediate purge.
 
-The Kill Switch is a somatic emergency brake, not a psychological tool.
+The SCRAM is a somatic emergency brake, not a psychological tool.
 
 ## 1. ACTIVATION GESTURE
 
-The Kill Switch is activated through a long press on the Monolith Anchor.
+The SCRAM is activated through a long press on the Monolith Anchor.
 
 ### 1.1 Gesture Requirements
 
@@ -45,7 +51,7 @@ Once the gesture is recognized, the system executes the following sequence witho
 
 - UI freezes
 - Navigation disabled
-- All inputs ignored except Kill Switch release
+- All inputs ignored except SCRAM release
 
 ### 2.2 Drop
 
@@ -77,7 +83,7 @@ Displayed text only:
 
 ## 3. SAFETY LOGIC
 
-The Kill Switch includes three layers of protection to prevent accidental activation.
+The SCRAM includes three layers of protection to prevent accidental activation.
 
 ### 3.1 Pressure Threshold
 
@@ -109,7 +115,7 @@ This ensures the gesture is deliberate and contained.
 
 ## 4. FAIL-SAFE BEHAVIOR
 
-If the Kill Switch is activated during:
+If the SCRAM is activated during:
 
 - animations
 - transitions
@@ -125,11 +131,11 @@ This guarantees:
 - No delay
 - No UI dependency
 
-The Kill Switch overrides everything.
+The SCRAM overrides everything.
 
 ## 5. HAPTIC SIGNATURE
 
-The Kill Switch has a unique haptic signature to differentiate it from all other interactions.
+The SCRAM has a unique haptic signature to differentiate it from all other interactions.
 
 ### 5.1 Activation Pulse
 
@@ -150,7 +156,7 @@ Indicates system reset.
 
 ## 6. VISUAL SIGNATURE
 
-The Kill Switch uses a non-emotional, industrial visual sequence:
+The SCRAM uses a non-emotional, industrial visual sequence:
 
 - Deep navy fade
 - Single Hollow pulse
@@ -160,26 +166,27 @@ The Kill Switch uses a non-emotional, industrial visual sequence:
 
 No icons.  
 No warnings.  
-No emotional cues.
+No emotional cues.  
+No alarm-red — the system goes dark, it does not sound an alarm.
 
 ## 7. LOGGING
 
-Every Kill Switch activation is logged in the Ledger and aggregated in the Depth Index.
+Every SCRAM activation is logged in the Ledger and aggregated in the Depth Index.
 
 ### 7.1 Ledger Entry
 
 - Timestamp
-- Activation type: Kill Switch
+- Activation type: SCRAM
 - Purge duration
 - Completion status
 
 ### 7.2 Depth Index
 
-Kill Switch activations count as Purge Events with a special flag.
+SCRAM activations count as Purge Events with a special flag.
 
 ## 8. NON-INTERFERENCE PRINCIPLE
 
-The Kill Switch:
+The SCRAM:
 
 - Does not ask for confirmation
 - Does not ask for reason
@@ -192,4 +199,4 @@ It stabilizes.
 
 ---
 
-END OF KILL SWITCH SPECIFICATION (V1.0)
+END OF SCRAM SPECIFICATION (V1.0)

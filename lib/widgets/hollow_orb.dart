@@ -79,7 +79,7 @@ class _HollowOrbState extends State<HollowOrb>
     final start = _hollowStartTime;
     _hollowStartTime = null;
     _isActive = false;
-    _killHapticLoopInstantly();
+    _stopHapticLoopInstantly();
     _breathTimer?.cancel();
     if (start != null) {
       final elapsed = DateTime.now().difference(start).inSeconds;
@@ -93,9 +93,9 @@ class _HollowOrbState extends State<HollowOrb>
     setState(() {});
   }
 
-  /// Kills the haptic loop instantly via CancelableOperation to prevent haptic ghosting.
+  /// Stops the haptic loop instantly via CancelableOperation to prevent haptic ghosting.
   /// Also calls Vibration.cancel() to stop any lingering vibration.
-  void _killHapticLoopInstantly() {
+  void _stopHapticLoopInstantly() {
     _hapticOp?.cancel();
     _hapticOp = null;
     _hapticTimer?.cancel();
@@ -103,10 +103,10 @@ class _HollowOrbState extends State<HollowOrb>
     Vibration.cancel();
   }
 
-  /// Pulse entrainment thrum: BPM from calibration (50–70). Wrapped in CancelableOperation for instant kill on release.
+  /// Pulse entrainment thrum: BPM from calibration (50–70). Wrapped in CancelableOperation for instant stop on release.
   /// When haptic intensity is 0, does not start the thrum (saves battery, prevents overstimulation).
   void _start60BpmThrum() {
-    _killHapticLoopInstantly();
+    _stopHapticLoopInstantly();
     if (CalibrationService.hapticIntensitySync <= 0) return;
     CalibrationService.getPulseEntrainmentBpm().then((bpm) {
       final canceled = _hapticOp?.isCanceled ?? false;
@@ -164,7 +164,7 @@ class _HollowOrbState extends State<HollowOrb>
 
   @override
   void dispose() {
-    _killHapticLoopInstantly();
+    _stopHapticLoopInstantly();
     _breathTimer?.cancel();
     _pulseController.dispose();
     super.dispose();
