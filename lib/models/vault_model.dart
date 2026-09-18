@@ -55,6 +55,30 @@ class VaultEntry {
 
   Duration get remainingTime => unlockTime.difference(DateTime.now());
 
+  /// Remaining seal time clamped to `[0, duration]`. A device clock that jumps
+  /// backward cannot resurrect a seal beyond its configured length, and a clock
+  /// that jumps forward cannot drive the value negative. Use this for display
+  /// and release checks so the vault can never appear stuck past its timer.
+  Duration get remainingTimeClamped {
+    final raw = remainingTime;
+    if (raw <= Duration.zero) return Duration.zero;
+    if (raw > duration) return duration;
+    return raw;
+  }
+
+  /// Reflection-window remainder clamped to `[0, effectiveReflectionDuration]`.
+  Duration get reflectionRemainingTimeClamped {
+    final raw = reflectionRemainingTime;
+    if (raw <= Duration.zero) return Duration.zero;
+    final cap = _effectiveReflectionDuration;
+    if (raw > cap) return cap;
+    return raw;
+  }
+
+  /// True once the full seal has elapsed. Equivalent to [isReadyForReflection]
+  /// but named for the release call-sites in the vault UI.
+  bool get isReleased => remainingTimeClamped <= Duration.zero;
+
   /// PDF / audit table: include vault row only after reflection window closes.
   bool get shouldAppearInAuditPdf =>
       !DateTime.now().isBefore(reflectionEndsAt);

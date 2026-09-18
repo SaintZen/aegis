@@ -86,15 +86,6 @@ class _WorryVaultScreenState extends State<WorryVaultScreen>
     _showChat = true;
   }
 
-  void _onOrientationChange(Orientation orientation) {
-    if (orientation == Orientation.landscape) {
-      SystemChrome.setPreferredOrientations([
-        DeviceOrientation.landscapeLeft,
-        DeviceOrientation.landscapeRight,
-      ]);
-    }
-  }
-
   Future<void> _initializeVideo() async {
     final previous = _controller;
     if (previous != null) {
@@ -413,7 +404,6 @@ class _WorryVaultScreenState extends State<WorryVaultScreen>
   Widget build(BuildContext context) {
     return OrientationBuilder(
       builder: (context, orientation) {
-        _onOrientationChange(orientation);
         final isPortrait = orientation == Orientation.portrait;
         if (isPortrait) {
           _resetDive();
@@ -652,7 +642,7 @@ class _WorryVaultScreenState extends State<WorryVaultScreen>
             Text(
               'ROTATE FOR VAULT',
               style: TextStyle(
-                color: const Color(0xFF738678).withOpacity(0.8),
+                color: const Color(0xFF738678).withValues(alpha: 0.8),
                 letterSpacing: 2,
                 fontSize: 12,
               ),
@@ -934,21 +924,15 @@ class _WorryVaultScreenState extends State<WorryVaultScreen>
       }
       return;
     }
+    // No stored entry. A lingering `vault_lockout_until` timestamp with no
+    // matching entry is a stale/inconsistent record — every real seal writes
+    // the entry and the pref together, and clearing removes both. Locking on
+    // the orphaned pref alone produced a vault with no signal to show and no
+    // release control: the original "locked up past the timer" dead-end.
+    // Clear it so the vault opens to intake instead of stranding the operator.
     final prefs = await SharedPreferences.getInstance();
-    final lockoutEndsAt = prefs.getString('vault_lockout_until');
-    if (lockoutEndsAt == null) {
-      return;
-    }
-    final lockoutTime = DateTime.tryParse(lockoutEndsAt);
-    if (lockoutTime == null) {
-      return;
-    }
-    if (DateTime.now().isBefore(lockoutTime)) {
-      setState(() {
-        _isLocked = true;
-        _lockoutEndsAt = lockoutTime;
-      });
-      _startLockoutTicker();
+    if (prefs.getString('vault_lockout_until') != null) {
+      await prefs.remove('vault_lockout_until');
     }
   }
 
@@ -984,13 +968,14 @@ class _WorryVaultScreenState extends State<WorryVaultScreen>
         timer.cancel();
         return;
       }
-      if (DateTime.now().isAfter(endsAt)) {
+      // The visible countdown is owned by [VaultTimerView], which runs its own
+      // ticker. This ticker only flips the released flag once, at expiry, so we
+      // avoid rebuilding the whole screen every second.
+      if (!DateTime.now().isBefore(endsAt)) {
         timer.cancel();
         setState(() {
           _vaultReady = true;
         });
-      } else {
-        setState(() {});
       }
     });
   }
