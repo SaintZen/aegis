@@ -246,7 +246,7 @@ class _IslandScreenState extends State<IslandScreen>
                       duration: const Duration(milliseconds: 800),
                     ),
                     (instance) {
-                      instance.onLongPress = _killSwitch;
+                      instance.onLongPress = _triggerScram;
                     },
                   ),
                 },
@@ -1196,7 +1196,7 @@ class _IslandScreenState extends State<IslandScreen>
     _shakeHapticTimer = null;
   }
 
-  Future<void> _killSwitch() async {
+  Future<void> _triggerScram() async {
     if (!_isExecutingSequence) return;
     final toolName = const {
       'wall_push': 'Wall Push',

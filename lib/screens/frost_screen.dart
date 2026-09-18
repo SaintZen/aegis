@@ -33,7 +33,7 @@ class _FrostScreenState extends State<FrostScreen> {
   Offset? _lastScrapePosition;
   final List<_Spark> _sparks = [];
   final math.Random _sparkRandom = math.Random();
-  bool _showKillFlash = false;
+  bool _showStopFlash = false;
 
   @override
   void initState() {
@@ -85,9 +85,10 @@ class _FrostScreenState extends State<FrostScreen> {
                 clipBehavior: Clip.none,
                 children: [
                   _buildFrostLayer(),
-                  if (_showKillFlash)
+                  if (_showStopFlash)
                     Positioned.fill(
-                      child: Container(color: Colors.red),
+                      // Calm navy wash on abort — the system going dark, not an alarm.
+                      child: Container(color: const Color(0xFF001220)),
                     ),
                   Positioned(
                     right: 10,
@@ -139,7 +140,7 @@ class _FrostScreenState extends State<FrostScreen> {
       status: 'Aborted',
     );
     if (!mounted) return;
-    setState(() => _showKillFlash = true);
+    setState(() => _showStopFlash = true);
     await Future.delayed(const Duration(milliseconds: 100));
     if (!mounted) return;
     Navigator.pop(context);

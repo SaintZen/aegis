@@ -36,7 +36,7 @@ class BridgeScreen extends StatefulWidget {
 class _BridgeScreenState extends State<BridgeScreen>
     with WidgetsBindingObserver {
   Timer? _anchorHapticTimer;
-  Timer? _killSwitchTimer;
+  Timer? _scramTimer;
   bool _anchorPressed = false;
   int _hapticStep = 0;
 
@@ -150,7 +150,7 @@ class _BridgeScreenState extends State<BridgeScreen>
                                   onTapUp: (_) => _onAnchorPointerRelease(),
                                   onTapCancel: _onAnchorPointerRelease,
                                   onLongPressStart: (_) =>
-                                      _triggerKillSwitch(),
+                                      _triggerScram(),
                                   child: Container(
                                     width: anchorSize,
                                     height: anchorSize,
@@ -397,13 +397,13 @@ class _BridgeScreenState extends State<BridgeScreen>
     _anchorPressed = true;
     _hapticStep = 0;
     _anchorHapticTimer?.cancel();
-    _killSwitchTimer?.cancel();
+    _scramTimer?.cancel();
 
     _runAnchorCompressionPulse(220);
 
-    _killSwitchTimer = Timer(const Duration(milliseconds: 1250), () {
+    _scramTimer = Timer(const Duration(milliseconds: 1250), () {
       if (_anchorPressed) {
-        _triggerKillSwitch();
+        _triggerScram();
       }
     });
   }
@@ -428,10 +428,14 @@ class _BridgeScreenState extends State<BridgeScreen>
   void _onAnchorPointerRelease() {
     _anchorPressed = false;
     _anchorHapticTimer?.cancel();
-    _killSwitchTimer?.cancel();
+    _scramTimer?.cancel();
   }
 
-  void _triggerKillSwitch() {
+  /// SCRAM (Priority 0, formerly "Kill Switch"): the universal interrupt.
+  /// A 1.25s hold on the Monolith Anchor drops the operator straight into the
+  /// Void. Named for the reactor emergency-shutdown that halts a runaway
+  /// reaction — decisive and protective, never violent.
+  void _triggerScram() {
     _onAnchorPointerRelease();
     Navigator.pushNamed(context, '/wormhole');
   }
@@ -559,7 +563,7 @@ class _BridgeScreenState extends State<BridgeScreen>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _anchorHapticTimer?.cancel();
-    _killSwitchTimer?.cancel();
+    _scramTimer?.cancel();
     super.dispose();
   }
 }
