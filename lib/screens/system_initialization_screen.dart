@@ -19,8 +19,15 @@ class _SystemInitializationScreenState extends State<SystemInitializationScreen>
   static const String _introText =
       'Aegis System online. Calibrating somatic sensors. Stay grounded.';
 
+  // Never trap the operator at the front door. If the audio handshake stalls —
+  // a setAsset/play that neither resolves nor throws, as happens when a browser
+  // blocks autoplay — this deadline still opens CONTINUE. Load also fails fast.
+  static const Duration _loadTimeout = Duration(seconds: 5);
+  static const Duration _readyDeadline = Duration(seconds: 6);
+
   final AudioPlayer _player = AudioPlayer();
   Timer? _hapticTimer;
+  Timer? _readyWatchdog;
   bool _audioReady = false;
   bool _audioDone = false;
   bool _requesting = false;
@@ -29,32 +36,49 @@ class _SystemInitializationScreenState extends State<SystemInitializationScreen>
   @override
   void initState() {
     super.initState();
+    // Guarantee: CONTINUE becomes available within _readyDeadline no matter
+    // what the audio subsystem does.
+    _readyWatchdog = Timer(_readyDeadline, _markReady);
     _startHandshake();
   }
 
   @override
   void dispose() {
     _hapticTimer?.cancel();
+    _readyWatchdog?.cancel();
     _player.dispose();
     super.dispose();
   }
 
   Future<void> _startHandshake() async {
     try {
-      await _player.setAsset('assets/audio/affirmations/system/sys_on.mp3');
-      setState(() => _audioReady = true);
+      await _player
+          .setAsset('assets/audio/affirmations/system/sys_on.mp3')
+          .timeout(_loadTimeout);
+      if (mounted) setState(() => _audioReady = true);
       _startCalibrationHum();
       await _player.play();
       await _player.processingStateStream.firstWhere(
         (state) => state == ProcessingState.completed,
       );
     } catch (_) {
-      // Fallback if audio missing: continue flow.
+      // Missing / slow / stalled audio must never block the flow.
     } finally {
-      _stopCalibrationHum();
-      if (mounted) {
-        setState(() => _audioDone = true);
-      }
+      _markReady();
+    }
+  }
+
+  /// Idempotently opens the gate (spinner off, CONTINUE + GRANT enabled) and
+  /// cancels the watchdog. Safe to call from the handshake or the deadline.
+  void _markReady() {
+    _readyWatchdog?.cancel();
+    _readyWatchdog = null;
+    _stopCalibrationHum();
+    if (mounted && !_audioDone) {
+      setState(() {
+        _audioReady = true;
+        _audioDone = true;
+      });
     }
   }
 
