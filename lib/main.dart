@@ -24,6 +24,7 @@ import 'package:anxiety_anchor/screens/kinetic_voice_drills_screen.dart';
 import 'package:anxiety_anchor/screens/kinetic_armory_screen.dart';
 import 'package:anxiety_anchor/screens/kinetic_action_screen.dart';
 import 'package:anxiety_anchor/screens/safety_gate_screen.dart';
+import 'package:anxiety_anchor/screens/scram_screen.dart';
 import 'package:anxiety_anchor/services/calibration_service.dart';
 import 'package:anxiety_anchor/screens/system_initialization_screen.dart';
 import 'package:anxiety_anchor/screens/personal_audio_library_screen.dart';
@@ -114,6 +115,7 @@ class AnxietyAnchorApp extends StatelessWidget {
                 '/rules-of-engagement': (_) => const RulesOfEngagementScreen(),
                 '/four-gates': (_) => const FourGatesScreen(),
                 '/wormhole': (_) => const WormholeScreen(),
+                '/scram': (_) => const ScramScreen(),
                 '/circuit-breaker': (_) => const CircuitBreakerScreen(),
                 '/lab': (_) => const AnxietyLabScreen(),
                 '/island': (_) => const IslandScreen(),

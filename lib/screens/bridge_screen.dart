@@ -437,7 +437,7 @@ class _BridgeScreenState extends State<BridgeScreen>
   /// reaction — decisive and protective, never violent.
   void _triggerScram() {
     _onAnchorPointerRelease();
-    Navigator.pushNamed(context, '/wormhole');
+    Navigator.pushNamed(context, '/scram');
   }
 
   /// Outlet row: dark fill, orange border/text — matches maintenance / ledger accent.
