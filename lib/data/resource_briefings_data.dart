@@ -71,9 +71,10 @@ final List<ResourceBriefing> resourceBriefings = [
       const ResourceArticle(
         title: 'The Black Box Privacy',
         body:
-            'Zero-Knowledge Architecture and local-only encryption keep activity '
-            'invisible to IT, HR, and Management. This framework emphasizes '
-            'surveillance reduction and user sovereignty.',
+            'Aegis is local-only: no account, no server, nothing transmitted — '
+            'activity stays on your device, invisible to IT, HR, and Management. '
+            'Sensitive entries are encrypted at rest with a device-held key. '
+            'This framework emphasizes surveillance reduction and user sovereignty.',
       ),
     ],
   ),
