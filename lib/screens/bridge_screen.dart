@@ -316,7 +316,7 @@ class _BridgeScreenState extends State<BridgeScreen>
                                 const SizedBox(height: 4),
                                 _buildBridgeOutlet(
                                   label: 'DICTIONARY',
-                                  semanticsHint: 'Opens AEGIS definitions',
+                                  semanticsHint: 'Opens AEGIS definitions hub',
                                   onTap: () => Navigator.pushNamed(
                                     context,
                                     '/resources',
@@ -325,7 +325,8 @@ class _BridgeScreenState extends State<BridgeScreen>
                                 const SizedBox(height: 4),
                                 _buildBridgeOutlet(
                                   label: 'ADVOCACY',
-                                  semanticsHint: 'Opens shield tools',
+                                  semanticsHint:
+                      'Opens Advocacy: shield directory, paper trail, complaint channels',
                                   onTap: () => Navigator.pushNamed(
                                     context,
                                     '/advocacy',

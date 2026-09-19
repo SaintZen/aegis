@@ -82,6 +82,7 @@ class AegisLogService {
     if (l.contains('vault') || l.contains('4/8')) {
       return 'The Vault';
     }
+    if (l.contains('kinetic')) return 'Kinetic';
     return type;
   }
 }

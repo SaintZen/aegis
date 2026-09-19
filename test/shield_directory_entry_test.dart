@@ -72,6 +72,18 @@ void main() {
       }
     });
 
+    test('live list drops placeholder rows even if hasValidUrl is true', () {
+      expect(
+        shieldDirectoryEntries.any((e) => e.placeholder),
+        isTrue,
+        reason: 'Fixture must include at least one draft row to prove the gate.',
+      );
+      expect(
+        shieldDirectoryLiveEntries.any((e) => e.placeholder),
+        isFalse,
+      );
+    });
+
     test('ids are unique across all entries', () {
       final ids = shieldDirectoryEntries.map((e) => e.id).toList();
       expect(ids.toSet().length, ids.length);

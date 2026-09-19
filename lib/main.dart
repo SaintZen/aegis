@@ -25,6 +25,7 @@ import 'package:anxiety_anchor/screens/kinetic_armory_screen.dart';
 import 'package:anxiety_anchor/screens/kinetic_action_screen.dart';
 import 'package:anxiety_anchor/screens/safety_gate_screen.dart';
 import 'package:anxiety_anchor/services/calibration_service.dart';
+import 'package:anxiety_anchor/screens/instrument_tour_screen.dart';
 import 'package:anxiety_anchor/screens/system_initialization_screen.dart';
 import 'package:anxiety_anchor/screens/personal_audio_library_screen.dart';
 import 'package:anxiety_anchor/screens/resource_detail_screen.dart';
@@ -411,6 +412,8 @@ class _LegalGateState extends State<LegalGate> {
   bool _assetsBootstrapped = false;
   bool _initChecked = false;
   bool _systemInitialized = false;
+  bool _tourCompleted = false;
+  bool _landOnBridge = false;
 
   @override
   void initState() {
@@ -431,9 +434,11 @@ class _LegalGateState extends State<LegalGate> {
   Future<void> _loadInitializationState() async {
     final prefs = await SharedPreferences.getInstance();
     final initialized = prefs.getBool('system_initialized') ?? false;
+    final tourDone = await InstrumentTourScreen.hasCompleted();
     if (mounted) {
       setState(() {
         _systemInitialized = initialized;
+        _tourCompleted = tourDone;
         _initChecked = true;
       });
     }
@@ -525,20 +530,39 @@ class _LegalGateState extends State<LegalGate> {
         },
       );
     }
-    return const MainTabController();
+    if (!_tourCompleted) {
+      return InstrumentTourScreen(
+        onComplete: () {
+          if (!mounted) return;
+          setState(() {
+            _tourCompleted = true;
+            _landOnBridge = true;
+          });
+        },
+      );
+    }
+    return MainTabController(
+      initialIndex: _landOnBridge ? MainTabController.bridgeIndex : 0,
+    );
   }
 
 }
 
 class MainTabController extends StatefulWidget {
-  const MainTabController({super.key});
+  const MainTabController({super.key, this.initialIndex = 0});
+
+  /// Bridge pillar. First-run after the instrument tour lands here —
+  /// ENTER BRIDGE must open the Bridge, not the Anchor.
+  static const int bridgeIndex = 3;
+
+  final int initialIndex;
 
   @override
   State<MainTabController> createState() => _MainTabControllerState();
 }
 
 class _MainTabControllerState extends State<MainTabController> {
-  int _selectedIndex = 0;
+  late int _selectedIndex = widget.initialIndex;
 
   // Four pillars: 0 Anchor, 1 Vistas, 2 Lab, 3 Bridge (MAINTENANCE / LEDGER opens stacked tabs)
   static const List<Widget> _pages = [

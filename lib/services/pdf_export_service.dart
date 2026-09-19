@@ -9,6 +9,7 @@ import 'package:printing/printing.dart';
 
 import 'dart:typed_data';
 
+import 'package:anxiety_anchor/scripts/kinetic_scripts.dart';
 import 'package:anxiety_anchor/services/aegis_log_service.dart';
 
 /// Exports AEGIS System Audit Report as a PDF with Tabular Ledger layout.
@@ -248,9 +249,10 @@ class PDFExportService {
     if (lower.contains('frost') || lower.contains('ice') || lower.contains('scraper')) {
       return 'THE FROST';
     }
-    if (lower.contains('anchor') || lower.contains('kinetic') ||
-        lower.contains('pulse') || lower.contains('wall') ||
-        lower.contains('breath') || lower.contains('vault')) {
+    if (isKineticProtocolTool(toolName)) return 'THE KINETIC';
+    if (lower.contains('anchor') ||
+        lower.contains('breath') ||
+        lower.contains('vault')) {
       return 'THE ANCHOR';
     }
     return toolName.toUpperCase();

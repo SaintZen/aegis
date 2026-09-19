@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:anxiety_anchor/models/four_gates_run.dart';
 import 'package:anxiety_anchor/models/pending_retest.dart';
+import 'package:anxiety_anchor/scripts/kinetic_scripts.dart';
 import 'package:anxiety_anchor/services/aegis_log_service.dart';
 import 'package:anxiety_anchor/services/pending_retest_store.dart';
 import 'package:anxiety_anchor/services/vault_service.dart';
@@ -187,13 +188,17 @@ class PdfGeneratorService {
     if (lower.contains('frost') || lower.contains('ice') || lower.contains('scraper')) {
       return 'THE FROST';
     }
-    if (lower.contains('anchor') || lower.contains('kinetic') ||
-        lower.contains('pulse') || lower.contains('wall') ||
-        lower.contains('breath') || lower.contains('vault')) {
+    if (isKineticProtocolTool(toolName)) return 'THE KINETIC';
+    if (lower.contains('anchor') ||
+        lower.contains('breath') ||
+        lower.contains('vault')) {
       return 'THE ANCHOR';
     }
     return toolName.toUpperCase();
   }
+
+  @visibleForTesting
+  static String debugMapToProtocol(String toolName) => _mapToProtocol(toolName);
 
   static String _mapStatus(String status) {
     switch (status.toLowerCase()) {
