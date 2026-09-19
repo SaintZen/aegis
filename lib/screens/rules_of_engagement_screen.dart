@@ -93,7 +93,7 @@ Best, [User Name]
                   OutlinedButton.icon(
                     onPressed: () => _launchExternal(context, _ebsaHelpUrl),
                     icon: const Icon(Icons.open_in_new),
-                    label: const Text('EBSA Federal Help Portal'),
+                    label: const Text('EBSA Federal Portal'),
                   ),
                   const SizedBox(height: 8),
                   OutlinedButton.icon(
