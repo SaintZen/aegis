@@ -40,3 +40,38 @@ jobs:
         with:
           name: coverage
           path: coverage
+
+  # Sideload APK for the operator. Cursor's artifact slot cannot hold
+  # the 124MB arm64 build, so GitHub Actions is the download path.
+  release-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: '3.38.4'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build arm64 release APK
+        run: flutter build apk --release --split-per-abi
+
+      - name: Upload arm64 APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: aegis-2026-09-19-arm64
+          path: build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+          if-no-files-found: error
