@@ -131,13 +131,16 @@ class _InstrumentTourScreenState extends State<InstrumentTourScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              Text(
-                station.body,
-                style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 14,
-                  height: 1.6,
-                  fontFamily: 'RobotoMono',
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 560),
+                child: Text(
+                  station.body,
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 14,
+                    height: 1.6,
+                    fontFamily: 'RobotoMono',
+                  ),
                 ),
               ),
               const Spacer(),

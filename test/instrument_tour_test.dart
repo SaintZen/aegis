@@ -54,6 +54,21 @@ void main() {
     }
   });
 
+  test('copy lock: Kill Switch is not a station; interrupt lives on Bridge', () {
+    expect(
+      InstrumentTourCopy.stations.any((s) => s.id == 'kill_switch'),
+      isFalse,
+    );
+    expect(
+      InstrumentTourCopy.stations.any((s) => s.name == 'KILL SWITCH'),
+      isFalse,
+    );
+    final bridge =
+        InstrumentTourCopy.stations.firstWhere((s) => s.id == 'bridge');
+    expect(bridge.body.toLowerCase(), contains('priority 0'));
+    expect(bridge.body.toLowerCase(), contains('monolith'));
+  });
+
   test('copy lock: Hollow is additive and Void is the only redact path', () {
     final hollow =
         InstrumentTourCopy.stations.firstWhere((s) => s.id == 'hollow');
@@ -79,8 +94,9 @@ void main() {
     expect(find.text(InstrumentTourCopy.title), findsOneWidget);
     expect(find.text(InstrumentTourCopy.preambleLine1), findsOneWidget);
     expect(find.text(InstrumentTourCopy.preambleLine2), findsOneWidget);
-    expect(find.text('STATION 01 / 07'), findsOneWidget);
+    expect(find.text('STATION 01 / 06'), findsOneWidget);
     expect(find.text('BRIDGE'), findsOneWidget);
+    expect(find.text('KILL SWITCH'), findsNothing);
     expect(find.text(InstrumentTourCopy.skipLabel), findsOneWidget);
 
     final skip = tester.widget<OutlinedButton>(
@@ -102,7 +118,9 @@ void main() {
     }
 
     expect(find.text(InstrumentTourCopy.stations.last.name), findsOneWidget);
-    expect(find.text('STATION 07 / 07'), findsOneWidget);
+    expect(find.text('FOUR GATES'), findsOneWidget);
+    expect(find.text('STATION 06 / 06'), findsOneWidget);
+    expect(find.text('KILL SWITCH'), findsNothing);
     expect(find.text(InstrumentTourCopy.enterLabel), findsOneWidget);
     expect(find.text(InstrumentTourCopy.nextLabel), findsNothing);
   });

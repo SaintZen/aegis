@@ -32,7 +32,9 @@ class InstrumentTourCopy {
       name: 'BRIDGE',
       body:
           'The operational surface. Cold, symmetrical, stable. '
-          'The operator\'s reference plane. The imagination does not rewrite it.',
+          'The operator\'s reference plane. The imagination does not rewrite it. '
+          'Priority 0 interrupt: 1.25-second long press on the Monolith. '
+          'Immediate drop into the Void.',
     ),
     InstrumentTourStation(
       id: 'hollow',
@@ -71,13 +73,6 @@ class InstrumentTourCopy {
           'The instrument tests whether failure was structurally possible. '
           'If any precondition is absent, the event is classified as overload. '
           'The ledger output is the durable record.',
-    ),
-    InstrumentTourStation(
-      id: 'kill_switch',
-      name: 'KILL SWITCH',
-      body:
-          'Priority 0. 1.25-second long press on the Monolith Anchor. '
-          'Universal interrupt. Immediate drop into the Void.',
     ),
   ];
 
