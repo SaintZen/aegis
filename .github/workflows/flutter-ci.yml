@@ -8,7 +8,7 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -44,7 +44,7 @@ jobs:
   # Sideload APK for the operator. Cursor's artifact slot cannot hold
   # the 124MB arm64 build, so GitHub Actions is the download path.
   release-apk:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
       - name: Checkout
