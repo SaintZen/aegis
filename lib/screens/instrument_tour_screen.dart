@@ -36,6 +36,10 @@ class InstrumentTourScreen extends StatefulWidget {
 }
 
 class _InstrumentTourScreenState extends State<InstrumentTourScreen> {
+  /// Matches [SonicPharmacyScreen] so the global AEGIS HUD does not
+  /// collide with the station title.
+  static const double _kAegisHudReserve = 42.0;
+
   int _index = 0;
   bool _finishing = false;
 
@@ -71,7 +75,7 @@ class _InstrumentTourScreenState extends State<InstrumentTourScreen> {
       backgroundColor: const Color(0xFF000000),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.fromLTRB(24, 24 + _kAegisHudReserve, 24, 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
