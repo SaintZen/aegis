@@ -15,6 +15,14 @@ import 'package:anxiety_anchor/services/usage_log_service.dart';
 import 'package:anxiety_anchor/services/aegis_log_service.dart';
 import 'package:anxiety_anchor/widgets/affirmations_library.dart';
 
+/// Vista beds and Kinetic voice halt when the operator leaves the
+/// foreground. [AppLifecycleState.resumed] is the only state that may
+/// restore audio. Closing the app, switching away, or hiding the
+/// surface all silence the looping beds.
+bool islandLifecycleSilencesAudio(AppLifecycleState state) {
+  return state != AppLifecycleState.resumed;
+}
+
 enum _IslandMode { vista, voice, kinetic }
 enum _KineticView { menu, active }
 enum _PulsePhase {
@@ -56,6 +64,7 @@ class _IslandScreenState extends State<IslandScreen>
   final Stopwatch _vistaStopwatch = Stopwatch();
   _KineticView _kineticView = _KineticView.menu;
   bool _userHasSelectedVista = false;
+  bool _sessionHalted = false;
   String? _activeExerciseKey;
   _PulsePhase _pulsePhase = _PulsePhase.none;
   bool _closingFlashOn = false;
@@ -95,15 +104,72 @@ class _IslandScreenState extends State<IslandScreen>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _logVistaSession();
-    _fullController?.dispose();
-    _vistaAudio.dispose();
-    _missionControlPlayer.dispose();
-    _pulseVisualController.dispose();
+    _sessionHalted = true;
     _shakeHapticTimer?.cancel();
     _isometricRampTimer?.cancel();
     _pulseTapTimer?.cancel();
+    _pulseVisualController.dispose();
+    unawaited(_logVistaSession());
+    _fullController?.dispose();
+    unawaited(_vistaAudio.stop().whenComplete(_vistaAudio.dispose));
+    unawaited(
+      _missionControlPlayer.stop().whenComplete(_missionControlPlayer.dispose),
+    );
+    unawaited(KineticVoiceEngine.emergencyStop());
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (islandLifecycleSilencesAudio(state)) {
+      unawaited(_silenceForBackground());
+      return;
+    }
+    if (_sessionHalted) return;
+    unawaited(_restoreIslandOnForeground());
+  }
+
+  Future<void> _silenceForBackground() async {
+    await _stopVistaAudio();
+    try {
+      await _missionControlPlayer.stop();
+    } catch (e) {
+      debugPrint('Mission control stop failed: $e');
+    }
+    await KineticVoiceEngine.emergencyStop();
+    try {
+      await _fullController?.pause();
+    } catch (e) {
+      debugPrint('Vista video pause failed: $e');
+    }
+    _stopShakeStaccato();
+    _stopIsometricRamp();
+    _stopPulseTapLoop();
+    _stopPulseVisualPulse();
+    if (!mounted) return;
+    if (_isExecutingSequence) {
+      setState(() {
+        _isExecutingSequence = false;
+        _currentRep = 0;
+        _kineticView = _KineticView.active;
+        _activeExerciseKey = null;
+        _pulsePhase = _PulsePhase.none;
+      });
+    }
+  }
+
+  Future<void> _restoreIslandOnForeground() async {
+    if (!mounted) return;
+    if (_isLandscape) {
+      try {
+        await _fullController?.play();
+      } catch (e) {
+        debugPrint('Vista video resume failed: $e');
+      }
+    }
+    if (_mode == _IslandMode.vista && _userHasSelectedVista) {
+      await _playVistaAudio(_selectedVistaIndex);
+    }
   }
 
   @override
@@ -441,7 +507,7 @@ class _IslandScreenState extends State<IslandScreen>
 
   Future<void> _playVistaAudio(int index) async {
     if (!_userHasSelectedVista) return;
-    if (_activeVistaAudioIndex == index) return;
+    if (_activeVistaAudioIndex == index && _vistaAudio.playing) return;
     final audioPath = _vistaAudioPathForIndex(index);
     try {
       await _logVistaSession();
@@ -707,12 +773,12 @@ class _IslandScreenState extends State<IslandScreen>
                 )
           : KineticVoiceEngine.playPrimer(exerciseKey);
       await primerFuture;
-      if (!mounted) return;
+      if (!mounted || _sessionHalted) return;
 
       for (int i = 1; i <= 3; i++) {
         final pauseSeconds = (i == 1) ? 4 : 3;
         await Future.delayed(Duration(seconds: pauseSeconds));
-        if (!mounted) return;
+        if (!mounted || _sessionHalted) return;
         setState(() => _currentRep = i);
         if (exerciseKey != 'pulse') {
           _setPulsePhase(_PulsePhase.actionPulse);
@@ -738,6 +804,7 @@ class _IslandScreenState extends State<IslandScreen>
       }
 
       await Future.delayed(const Duration(seconds: 2));
+      if (!mounted || _sessionHalted) return;
       if (exerciseKey == 'pulse') {
         await _runClosingLoop();
       }
@@ -757,15 +824,16 @@ class _IslandScreenState extends State<IslandScreen>
         _stopIsometricRamp();
         await KineticVoiceEngine.stopPulseThrum();
       }
-      await _vistaAudio.setVolume(1.0);
-      if (!mounted) return;
-      setState(() {
-        _isExecutingSequence = false;
-        _currentRep = 0;
-        _kineticView = _KineticView.menu;
-        _mode = _IslandMode.vista;
-        _activeExerciseKey = null;
-      });
+      await _vistaAudio.setVolume(0.0);
+      if (mounted && !_sessionHalted) {
+        setState(() {
+          _isExecutingSequence = false;
+          _currentRep = 0;
+          _kineticView = _KineticView.menu;
+          _mode = _IslandMode.kinetic;
+          _activeExerciseKey = null;
+        });
+      }
     }
   }
 
@@ -881,21 +949,26 @@ class _IslandScreenState extends State<IslandScreen>
   Widget _buildActiveExerciseView() {
     if (!_isExecutingSequence) {
       return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const SizedBox(height: 20),
           const Text(
-            'No active exercise running.',
-            style: TextStyle(color: Colors.white54),
-          ),
-          const SizedBox(height: 16),
-          OutlinedButton(
-            onPressed: () => setState(() => _kineticView = _KineticView.menu),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: Colors.white70,
-              side: const BorderSide(color: Colors.white30),
+            'SELECT A SEQUENCE',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.white70,
+              fontSize: 12,
+              letterSpacing: 1.2,
+              fontWeight: FontWeight.w600,
             ),
-            child: const Text('BACK TO MENU'),
           ),
+          const SizedBox(height: 8),
+          const Text(
+            'The Active surface launches the four kinetic instruments.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.white54, fontSize: 14),
+          ),
+          const SizedBox(height: 20),
+          _buildKineticMenu(),
         ],
       );
     }
@@ -1359,6 +1432,7 @@ class _IslandScreenState extends State<IslandScreen>
       crossAxisCount: 2,
       crossAxisSpacing: 16,
       mainAxisSpacing: 16,
+      childAspectRatio: 0.82,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       children: cards.map((card) => _buildKineticCard(card)).toList(),
@@ -1371,8 +1445,7 @@ class _IslandScreenState extends State<IslandScreen>
       borderRadius: BorderRadius.circular(22),
       onTap: () => playKineticSequence(card.exerciseKey),
       child: Container(
-        height: 160,
-        padding: const EdgeInsets.all(18),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.black.withOpacity(0.6),
           borderRadius: BorderRadius.circular(22),
@@ -1393,10 +1466,12 @@ class _IslandScreenState extends State<IslandScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(card.icon, color: glow, size: 34),
+            Icon(card.icon, color: glow, size: 32),
             const Spacer(),
             Text(
               card.title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: Colors.white.withOpacity(0.92),
                 fontSize: 18,
@@ -1404,9 +1479,11 @@ class _IslandScreenState extends State<IslandScreen>
                 letterSpacing: 0.6,
               ),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 4),
             Text(
               'Tap to launch',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: Colors.white.withOpacity(0.55),
                 fontSize: 12,
