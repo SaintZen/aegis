@@ -65,6 +65,7 @@ class _IslandScreenState extends State<IslandScreen>
   _KineticView _kineticView = _KineticView.menu;
   bool _userHasSelectedVista = false;
   bool _sessionHalted = false;
+  bool _kineticLogged = false;
   String? _activeExerciseKey;
   _PulsePhase _pulsePhase = _PulsePhase.none;
   bool _closingFlashOn = false;
@@ -148,6 +149,7 @@ class _IslandScreenState extends State<IslandScreen>
     _stopPulseVisualPulse();
     if (!mounted) return;
     if (_isExecutingSequence) {
+      final key = _activeExerciseKey;
       setState(() {
         _isExecutingSequence = false;
         _currentRep = 0;
@@ -155,6 +157,9 @@ class _IslandScreenState extends State<IslandScreen>
         _activeExerciseKey = null;
         _pulsePhase = _PulsePhase.none;
       });
+      if (key != null) {
+        unawaited(_logKineticUse(key, 'Aborted'));
+      }
     }
   }
 
@@ -578,6 +583,7 @@ class _IslandScreenState extends State<IslandScreen>
       _currentRep = 0;
       _kineticView = _KineticView.active;
       _activeExerciseKey = exerciseKey;
+      _kineticLogged = false;
     });
 
     await _vistaAudio.setVolume(0.0);
@@ -591,199 +597,20 @@ class _IslandScreenState extends State<IslandScreen>
     }
 
     try {
-      final primerFuture = (exerciseKey == 'wall_push' ||
-              exerciseKey == 'wall_pushups')
-          ? KineticVoiceEngine.playTrackWithAudits(
-              exerciseId: exerciseKey,
-              audits: [
-                AuditMarker(
-                  at: _auditTimestamp(
-                    base: const Duration(seconds: 10),
-                    key: 'vision',
-                  ),
-                  label: 'VISION',
-                  hold: const Duration(milliseconds: 2500),
-                ),
-                AuditMarker(
-                  at: _auditTimestamp(
-                    base: const Duration(seconds: 20),
-                    key: 'feet',
-                  ),
-                  label: 'FEET',
-                  hold: const Duration(milliseconds: 2500),
-                ),
-                AuditMarker(
-                  at: _auditTimestamp(
-                    base: const Duration(seconds: 25),
-                    key: 'head',
-                  ),
-                  label: 'HEAD',
-                  hold: const Duration(milliseconds: 2500),
-                ),
-              ],
-              onAudit: _triggerAuditWindow,
-            )
-          : exerciseKey == 'somatic_shaking' || exerciseKey == 'tense_release'
-              ? KineticVoiceEngine.playTrackWithAudits(
-                  exerciseId: exerciseKey,
-                  audits: [
-                    AuditMarker(
-                      at: _auditTimestamp(
-                        base: const Duration(seconds: 8),
-                        key: 'vision',
-                      ),
-                      label: 'VISION',
-                      hold: const Duration(milliseconds: 1500),
-                    ),
-                    AuditMarker(
-                      at: _auditTimestamp(
-                        base: const Duration(seconds: 15),
-                        key: 'feet',
-                      ),
-                      label: 'FEET',
-                      hold: const Duration(milliseconds: 1500),
-                    ),
-                    AuditMarker(
-                      at: _auditTimestamp(
-                        base: const Duration(seconds: 22),
-                        key: 'grounded',
-                      ),
-                      label: 'GROUNDED',
-                      hold: const Duration(milliseconds: 2000),
-                    ),
-                  ],
-                  onAudit: _triggerAuditWindow,
-                )
-          : exerciseKey == 'muscle_clench'
-              ? KineticVoiceEngine.playTrackWithAudits(
-                  exerciseId: exerciseKey,
-                  audits: [
-                    AuditMarker(
-                      at: _auditTimestamp(
-                        base: const Duration(seconds: 7),
-                        key: 'breathe',
-                      ),
-                      label: 'BREATHE',
-                      hold: const Duration(milliseconds: 2000),
-                    ),
-                    AuditMarker(
-                      at: _auditTimestamp(
-                        base: const Duration(seconds: 18),
-                        key: 'vision',
-                      ),
-                      label: 'VISION',
-                      hold: const Duration(milliseconds: 2000),
-                    ),
-                    AuditMarker(
-                      at: _auditTimestamp(
-                        base: const Duration(seconds: 25),
-                        key: 'status',
-                      ),
-                      label: 'STATUS: GREEN',
-                      hold: const Duration(milliseconds: 2000),
-                    ),
-                  ],
-                  onAudit: _triggerAuditWindow,
-                  markers: [
-                    TrackMarker(
-                      at: _auditTimestamp(
-                        base: const Duration(seconds: 9),
-                        key: 'clench_start_1',
-                      ),
-                      key: 'clench_start_1',
-                    ),
-                    TrackMarker(
-                      at: _auditTimestamp(
-                        base: const Duration(seconds: 16),
-                        key: 'clench_end_1',
-                      ),
-                      key: 'clench_end_1',
-                    ),
-                    TrackMarker(
-                      at: _auditTimestamp(
-                        base: const Duration(seconds: 18),
-                        key: 'release_1',
-                      ),
-                      key: 'release_1',
-                    ),
-                    TrackMarker(
-                      at: _auditTimestamp(
-                        base: const Duration(seconds: 20),
-                        key: 'clench_start_2',
-                      ),
-                      key: 'clench_start_2',
-                    ),
-                    TrackMarker(
-                      at: _auditTimestamp(
-                        base: const Duration(seconds: 24),
-                        key: 'clench_end_2',
-                      ),
-                      key: 'clench_end_2',
-                    ),
-                    TrackMarker(
-                      at: _auditTimestamp(
-                        base: const Duration(seconds: 25),
-                        key: 'release_2',
-                      ),
-                      key: 'release_2',
-                    ),
-                  ],
-                  onMarker: _handleIsometricMarker,
-                )
-          : exerciseKey == 'pulse'
-              ? KineticVoiceEngine.playTrackWithAudits(
-                  exerciseId: exerciseKey,
-                  audits: [
-                    AuditMarker(
-                      at: _auditTimestamp(
-                        base: const Duration(seconds: 6),
-                        key: 'feet',
-                      ),
-                      label: 'FEEL FEET',
-                      hold: const Duration(milliseconds: 2000),
-                    ),
-                    AuditMarker(
-                      at: _auditTimestamp(
-                        base: const Duration(seconds: 18),
-                        key: 'vision',
-                      ),
-                      label: 'VISION',
-                      hold: const Duration(milliseconds: 2000),
-                    ),
-                    AuditMarker(
-                      at: _auditTimestamp(
-                        base: const Duration(seconds: 25),
-                        key: 'locked',
-                      ),
-                      label: 'LOCKED',
-                      hold: const Duration(milliseconds: 3000),
-                    ),
-                  ],
-                  onAudit: _triggerAuditWindow,
-                  markers: [
-                    TrackMarker(
-                      at: _auditTimestamp(
-                        base: const Duration(seconds: 12),
-                        key: 'match_thrum',
-                      ),
-                      key: 'match_thrum',
-                    ),
-                  ],
-                  onMarker: _handlePulseMarker,
-                )
-          : KineticVoiceEngine.playPrimer(exerciseKey);
-      await primerFuture;
+      // Primer orients. The three reps are the instrument — one pass
+      // does not break the loop.
+      await KineticVoiceEngine.playPrimer(exerciseKey);
       if (!mounted || _sessionHalted) return;
 
-      for (int i = 1; i <= 3; i++) {
-        final pauseSeconds = (i == 1) ? 4 : 3;
-        await Future.delayed(Duration(seconds: pauseSeconds));
+      for (int i = 1; i <= kineticRepCount; i++) {
+        await Future.delayed(const Duration(seconds: 2));
         if (!mounted || _sessionHalted) return;
         setState(() => _currentRep = i);
         if (exerciseKey != 'pulse') {
           _setPulsePhase(_PulsePhase.actionPulse);
           if (exerciseKey == 'muscle_clench') {
             _startPulseVisualPulse(const Duration(milliseconds: 1600));
+            unawaited(_startIsometricRamp(const Duration(seconds: 4)));
           } else {
             _startPulseVisualPulse(const Duration(milliseconds: 900));
           }
@@ -792,10 +619,15 @@ class _IslandScreenState extends State<IslandScreen>
             _startShakeStaccato();
           }
         }
+        await _cueKineticRep(exerciseKey, i);
+        if (!mounted || _sessionHalted) return;
         await KineticVoiceEngine.playRep(exerciseKey);
         if (exerciseKey != 'pulse') {
           _stopPulseVisualPulse();
           _setPulsePhase(_PulsePhase.none);
+          if (exerciseKey == 'muscle_clench') {
+            _triggerIsometricRelease();
+          }
           if (exerciseKey == 'somatic_shaking' ||
               exerciseKey == 'tense_release') {
             _stopShakeStaccato();
@@ -808,7 +640,12 @@ class _IslandScreenState extends State<IslandScreen>
       if (exerciseKey == 'pulse') {
         await _runClosingLoop();
       }
-      await _playMissionClip(script[4]);
+      try {
+        await _playMissionClip(script[4]);
+      } catch (e) {
+        debugPrint('Kinetic exit clip failed: $e');
+      }
+      await _logKineticUse(exerciseKey, 'Acknowledged');
     } finally {
       if (exerciseKey == 'pulse') {
         await KineticVoiceEngine.stopPulseThrum();
@@ -1269,15 +1106,48 @@ class _IslandScreenState extends State<IslandScreen>
     _shakeHapticTimer = null;
   }
 
+  Future<void> _logKineticUse(String exerciseKey, String status) async {
+    if (_kineticLogged) return;
+    _kineticLogged = true;
+    await AegisLogService.logEntry(
+      toolName: kineticLedgerTool,
+      status: status,
+      signalInput: kineticInstrumentLabel(exerciseKey),
+    );
+  }
+
+  Future<void> _cueKineticRep(String exerciseKey, int rep) async {
+    final labels = _kineticRepCues(exerciseKey);
+    if (rep < 1 || rep > labels.length) return;
+    await _triggerAuditWindow(
+      AuditMarker(
+        at: Duration.zero,
+        label: labels[rep - 1],
+        hold: const Duration(milliseconds: 1200),
+      ),
+    );
+  }
+
+  List<String> _kineticRepCues(String exerciseKey) {
+    switch (exerciseKey) {
+      case 'wall_push':
+      case 'wall_pushups':
+        return const ['VISION', 'FEET', 'HEAD'];
+      case 'somatic_shaking':
+      case 'tense_release':
+        return const ['VISION', 'FEET', 'GROUNDED'];
+      case 'muscle_clench':
+        return const ['BREATHE', 'VISION', 'STATUS: GREEN'];
+      case 'pulse':
+        return const ['FEEL FEET', 'VISION', 'HOLD'];
+      default:
+        return const ['HOLD', 'HOLD', 'HOLD'];
+    }
+  }
+
   Future<void> _killSwitch() async {
     if (!_isExecutingSequence) return;
-    final toolName = const {
-      'wall_push': 'Wall Push',
-      'somatic_shaking': 'The Shake',
-      'muscle_clench': 'Isometric',
-      'pulse': 'The Pulse',
-    }[_activeExerciseKey] ??
-        'Kinetic';
+    final key = _activeExerciseKey;
     _stopShakeStaccato();
     _stopIsometricRamp();
     _stopPulseTapLoop();
@@ -1285,10 +1155,9 @@ class _IslandScreenState extends State<IslandScreen>
     await KineticVoiceEngine.stopVoice();
     _setPulsePhase(_PulsePhase.none);
     _stopPulseVisualPulse();
-    await AegisLogService.logEntry(
-      toolName: toolName,
-      status: 'Aborted',
-    );
+    if (key != null) {
+      await _logKineticUse(key, 'Aborted');
+    }
     if (!mounted) return;
     setState(() {
       _isExecutingSequence = false;

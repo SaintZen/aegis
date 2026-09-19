@@ -81,6 +81,44 @@ const List<KineticScript> kineticScriptCards = [
   pulseScript,
 ];
 
+/// Canonical Aegis-log tool name. Protocol maps to THE KINETIC.
+const String kineticLedgerTool = 'Kinetic';
+
+/// Each Kinetic instrument runs this many somatic reps.
+/// One pass does not break the loop.
+const int kineticRepCount = 3;
+
+/// Doctor-PDF Signal Input: instrument name only. No counts, no pose tally.
+String kineticInstrumentLabel(String exerciseKey) {
+  switch (exerciseKey) {
+    case 'wall_push':
+    case 'wall_pushups':
+      return 'WALL PUSH';
+    case 'somatic_shaking':
+    case 'tense_release':
+      return 'THE SHAKE';
+    case 'muscle_clench':
+      return 'ISOMETRIC';
+    case 'pulse':
+      return 'THE PULSE';
+    default:
+      return exerciseKey.replaceAll('_', ' ').toUpperCase();
+  }
+}
+
+/// True when an Aegis-log toolName is a Kinetic instrument.
+bool isKineticProtocolTool(String toolName) {
+  final lower = toolName.toLowerCase();
+  return lower.contains('kinetic') ||
+      lower.contains('wall push') ||
+      lower.contains('the shake') ||
+      lower.contains('isometric') ||
+      lower.contains('the pulse') ||
+      lower.contains('somatic_shaking') ||
+      lower.contains('wall_push') ||
+      lower == 'pulse';
+}
+
 final Map<String, List<String>> kineticScripts = {
   'wall_push': [
     'audio/kinetic/wall_push_primer.wav',

@@ -48,33 +48,50 @@ class KineticVoiceEngine {
     'level_06': _AudioSpec(_promptBasePath, 'level_06'),
   };
 
+  static const Duration _silentRepHold = Duration(milliseconds: 4500);
+  static const Duration _silentPrimerHold = Duration(milliseconds: 2000);
+
   static Future<void> playPrimer(String exerciseId) async {
-    final trackAsset = _exerciseTrackAudio[exerciseId];
     final spec = _exerciseAudio[exerciseId];
-    if (trackAsset == null && spec == null) return;
-    final assetPath = trackAsset ??
-        _resolveAssetPath('${spec!.basePath}${spec.prefix}_primer.wav');
-    await _voicePlayer.setVolume(1.0);
-    await _voicePlayer.setAsset(assetPath);
-    await _voicePlayer.play();
-    await _voicePlayer.processingStateStream.firstWhere(
-      (state) => state == ProcessingState.completed,
-    );
+    if (spec != null) {
+      final assetPath =
+          _resolveAssetPath('${spec.basePath}${spec.prefix}_primer.wav');
+      try {
+        await _voicePlayer.setVolume(1.0);
+        await _voicePlayer.setAsset(assetPath);
+        await _voicePlayer.play();
+        await _voicePlayer.processingStateStream.firstWhere(
+          (state) => state == ProcessingState.completed,
+        );
+        return;
+      } catch (e) {
+        debugPrint('Kinetic primer bed missing: $e');
+      }
+    }
+    await Future.delayed(_silentPrimerHold);
   }
 
+  /// One somatic rep. Never replays the full guided track — that would
+  /// turn the locked 3-rep protocol into four full passes.
   static Future<void> playRep(String exerciseId) async {
-    final trackAsset = _exerciseTrackAudio[exerciseId];
-    final spec = _exerciseAudio[exerciseId];
-    if (trackAsset == null && spec == null) return;
-    final assetPath = trackAsset ??
-        _resolveAssetPath('${spec!.basePath}${spec.prefix}_rep.wav');
-    await _voicePlayer.setVolume(1.0);
-    await _voicePlayer.setAsset(assetPath);
-    await _voicePlayer.play();
     HapticFeedback.heavyImpact();
-    await _voicePlayer.processingStateStream.firstWhere(
-      (state) => state == ProcessingState.completed,
-    );
+    final spec = _exerciseAudio[exerciseId];
+    if (spec != null) {
+      final assetPath =
+          _resolveAssetPath('${spec.basePath}${spec.prefix}_rep.wav');
+      try {
+        await _voicePlayer.setVolume(1.0);
+        await _voicePlayer.setAsset(assetPath);
+        await _voicePlayer.play();
+        await _voicePlayer.processingStateStream.firstWhere(
+          (state) => state == ProcessingState.completed,
+        );
+        return;
+      } catch (e) {
+        debugPrint('Kinetic rep bed missing: $e');
+      }
+    }
+    await Future.delayed(_silentRepHold);
   }
 
   static Future<void> primeSilence() async {
@@ -121,12 +138,31 @@ class KineticVoiceEngine {
   }) async {
     final trackAsset = _exerciseTrackAudio[exerciseId];
     final spec = _exerciseAudio[exerciseId];
-    if (trackAsset == null && spec == null) return;
+    if (trackAsset == null && spec == null) {
+      await _runSilentAuditTimeline(
+        audits: audits,
+        onAudit: onAudit,
+        markers: markers,
+        onMarker: onMarker,
+      );
+      return;
+    }
     final assetPath = trackAsset ??
         _resolveAssetPath('${spec!.basePath}${spec.prefix}_primer.wav');
-    await _voicePlayer.setVolume(1.0);
-    await _voicePlayer.setAsset(assetPath);
-    await _voicePlayer.play();
+    try {
+      await _voicePlayer.setVolume(1.0);
+      await _voicePlayer.setAsset(assetPath);
+      await _voicePlayer.play();
+    } catch (e) {
+      debugPrint('Kinetic track failed: $e');
+      await _runSilentAuditTimeline(
+        audits: audits,
+        onAudit: onAudit,
+        markers: markers,
+        onMarker: onMarker,
+      );
+      return;
+    }
 
     var auditIndex = 0;
     var markerIndex = 0;
@@ -160,6 +196,35 @@ class KineticVoiceEngine {
       (state) => state == ProcessingState.completed,
     );
     await subscription.cancel();
+  }
+
+  /// Visual / haptic audit windows still fire when the voice bed is absent.
+  static Future<void> _runSilentAuditTimeline({
+    required List<AuditMarker> audits,
+    required Future<void> Function(AuditMarker marker) onAudit,
+    List<TrackMarker> markers = const [],
+    Future<void> Function(TrackMarker marker)? onMarker,
+  }) async {
+    final scheduled = <_TimedKineticEvent>[
+      for (final audit in audits) _TimedKineticEvent.audit(audit),
+      for (final marker in markers) _TimedKineticEvent.marker(marker),
+    ]..sort((a, b) => a.at.compareTo(b.at));
+
+    var cursor = Duration.zero;
+    for (final event in scheduled) {
+      final wait = event.at - cursor;
+      if (wait > Duration.zero) {
+        await Future.delayed(wait);
+      }
+      cursor = event.at;
+      if (event.audit != null) {
+        await onAudit(event.audit!);
+      }
+      if (event.marker != null && onMarker != null) {
+        await onMarker(event.marker!);
+      }
+    }
+    await Future.delayed(const Duration(seconds: 2));
   }
 
   static Future<void> startEngineThrum() async {
@@ -307,6 +372,26 @@ class KineticVoiceEngine {
     }
     return 'assets/$assetPath';
   }
+}
+
+class _TimedKineticEvent {
+  const _TimedKineticEvent._({
+    required this.at,
+    this.audit,
+    this.marker,
+  });
+
+  factory _TimedKineticEvent.audit(AuditMarker audit) {
+    return _TimedKineticEvent._(at: audit.at, audit: audit);
+  }
+
+  factory _TimedKineticEvent.marker(TrackMarker marker) {
+    return _TimedKineticEvent._(at: marker.at, marker: marker);
+  }
+
+  final Duration at;
+  final AuditMarker? audit;
+  final TrackMarker? marker;
 }
 
 class _AudioSpec {
