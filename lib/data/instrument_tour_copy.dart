@@ -32,9 +32,7 @@ class InstrumentTourCopy {
       name: 'BRIDGE',
       body:
           'The operational surface. Cold, symmetrical, stable. '
-          'The operator\'s reference plane. The imagination does not rewrite it. '
-          'Priority 0 interrupt: 1.25-second long press on the Monolith. '
-          'Immediate drop into the Void.',
+          'The operator\'s reference plane. The imagination does not rewrite it.',
     ),
     InstrumentTourStation(
       id: 'hollow',
@@ -73,6 +71,15 @@ class InstrumentTourCopy {
           'The instrument tests whether failure was structurally possible. '
           'If any precondition is absent, the event is classified as overload. '
           'The ledger output is the durable record.',
+    ),
+    InstrumentTourStation(
+      id: 'scram',
+      name: 'SCRAM',
+      body:
+          'Priority 0. Somatic override pathway. 1.25-second long press '
+          'on the Monolith. Universal interrupt. Immediate drop into the Void. '
+          'Named for the reactor emergency-shutdown: decisive and protective, '
+          'never violent.',
     ),
   ];
 
