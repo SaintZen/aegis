@@ -25,6 +25,7 @@ import 'package:anxiety_anchor/screens/kinetic_armory_screen.dart';
 import 'package:anxiety_anchor/screens/kinetic_action_screen.dart';
 import 'package:anxiety_anchor/screens/safety_gate_screen.dart';
 import 'package:anxiety_anchor/services/calibration_service.dart';
+import 'package:anxiety_anchor/screens/instrument_tour_screen.dart';
 import 'package:anxiety_anchor/screens/system_initialization_screen.dart';
 import 'package:anxiety_anchor/screens/personal_audio_library_screen.dart';
 import 'package:anxiety_anchor/screens/resource_detail_screen.dart';
@@ -411,6 +412,7 @@ class _LegalGateState extends State<LegalGate> {
   bool _assetsBootstrapped = false;
   bool _initChecked = false;
   bool _systemInitialized = false;
+  bool _tourCompleted = false;
 
   @override
   void initState() {
@@ -431,9 +433,11 @@ class _LegalGateState extends State<LegalGate> {
   Future<void> _loadInitializationState() async {
     final prefs = await SharedPreferences.getInstance();
     final initialized = prefs.getBool('system_initialized') ?? false;
+    final tourDone = await InstrumentTourScreen.hasCompleted();
     if (mounted) {
       setState(() {
         _systemInitialized = initialized;
+        _tourCompleted = tourDone;
         _initChecked = true;
       });
     }
@@ -522,6 +526,14 @@ class _LegalGateState extends State<LegalGate> {
           await prefs.setBool('system_initialized', true);
           if (!mounted) return;
           setState(() => _systemInitialized = true);
+        },
+      );
+    }
+    if (!_tourCompleted) {
+      return InstrumentTourScreen(
+        onComplete: () {
+          if (!mounted) return;
+          setState(() => _tourCompleted = true);
         },
       );
     }
