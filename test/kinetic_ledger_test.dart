@@ -28,5 +28,6 @@ void main() {
     expect(PdfGeneratorService.debugMapToProtocol('The Pulse'), 'THE KINETIC');
     expect(isKineticProtocolTool(kineticLedgerTool), isTrue);
     expect(PdfGeneratorService.debugMapToProtocol('Rescue Breath'), 'THE ANCHOR');
+    expect(PdfGeneratorService.debugMapToProtocol('The Vault'), 'THE VAULT');
   });
 }

@@ -6,7 +6,9 @@ import 'package:just_audio/just_audio.dart';
 import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
 
+import 'package:anxiety_anchor/services/aegis_log_service.dart';
 import 'package:anxiety_anchor/services/kinetic_voice_engine.dart';
+import 'package:anxiety_anchor/services/usage_log_service.dart';
 
 class WormholeScreen extends StatefulWidget {
   const WormholeScreen({super.key});
@@ -163,6 +165,8 @@ class _WormholeScreenState extends State<WormholeScreen>
     super.dispose();
   }
 
+  bool _voidLedgerWritten = false;
+
   void _setPurgeComplete() {
     _returnDelayTimer?.cancel();
     setState(() {
@@ -170,10 +174,24 @@ class _WormholeScreenState extends State<WormholeScreen>
       _purgeComplete = true;
       _returnReady = false;
     });
+    if (!_voidLedgerWritten) {
+      _voidLedgerWritten = true;
+      unawaited(_logVoidPurge());
+    }
     _returnDelayTimer = Timer(const Duration(milliseconds: 1200), () {
       if (!mounted || !_purgeComplete) return;
       setState(() => _returnReady = true);
     });
+  }
+
+  Future<void> _logVoidPurge() async {
+    await UsageLogService.logVoidRelease();
+    // Subtractive: never persist the shredded signal. PDF shows
+    // [REDACTED/PURGED] / CLEAR from the empty ledger body.
+    await AegisLogService.logLedgerEntry(
+      type: 'THE VOID',
+      content: '',
+    );
   }
 
   void _toggleBlackhole() {

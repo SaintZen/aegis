@@ -250,9 +250,9 @@ class PDFExportService {
       return 'THE FROST';
     }
     if (isKineticProtocolTool(toolName)) return 'THE KINETIC';
+    if (lower.contains('vault')) return 'THE VAULT';
     if (lower.contains('anchor') ||
-        lower.contains('breath') ||
-        lower.contains('vault')) {
+        lower.contains('breath')) {
       return 'THE ANCHOR';
     }
     return toolName.toUpperCase();

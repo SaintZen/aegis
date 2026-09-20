@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:anxiety_anchor/models/four_gates_run.dart';
 import 'package:anxiety_anchor/models/pending_retest.dart';
+import 'package:anxiety_anchor/models/vault_model.dart';
 import 'package:anxiety_anchor/scripts/kinetic_scripts.dart';
 import 'package:anxiety_anchor/services/aegis_log_service.dart';
 import 'package:anxiety_anchor/services/pending_retest_store.dart';
@@ -75,20 +76,48 @@ class PdfGeneratorService {
     return (e.ledgerType ?? '').toUpperCase() == _fourGatesLedgerType;
   }
 
+  static bool _isVaultReflectionEntry(AegisLogEntry e) {
+    final lt = (e.ledgerType ?? '').toLowerCase();
+    if (lt.contains('4/8') || lt.contains('reflection')) return true;
+    return e.toolName.toLowerCase().contains('4/8');
+  }
+
   static Future<_AuditPdfData> _buildAuditPdfData() async {
     final hollowEntries = <_HollowPdfEntry>[];
+    final vaultEntries = <_VaultPdfEntry>[];
     final fourGatesEntries = <_FourGatesPdfEntry>[];
     final rows = <_AuditRow>[];
 
-    final vaultEntry = await VaultService().loadEntry();
-    if (vaultEntry != null && vaultEntry.shouldAppearInAuditPdf) {
-      rows.add(_AuditRow(
-        timestamp: vaultEntry.lockedAt,
-        protocol: 'THE VAULT',
-        signalText: vaultEntry.originalText,
-        isVoid: false,
-        status: vaultEntry.isResolved ? 'STABILIZED' : 'RECORDED',
-      ));
+    // Vault deposits live in THE VAULT section (full Signal Input, no
+    // 80-char cap). The live slot is one current seal; the archive keeps
+    // prior deposits that survived the 8h reflection window.
+    try {
+      final archived = await VaultService().loadAuditArchive();
+      for (final record in archived) {
+        vaultEntries.add(
+          _VaultPdfEntry(
+            timestamp: record.lockedAt,
+            protocol: 'THE VAULT',
+            content: record.originalText,
+            status: record.isResolved ? 'STABILIZED' : 'RECORDED',
+          ),
+        );
+      }
+    } catch (_) {
+      // Archive miss must not brick export. Fall through to live slot.
+    }
+    if (vaultEntries.isEmpty) {
+      final vaultEntry = await VaultService().loadEntry();
+      if (vaultEntry != null && vaultEntry.shouldAppearInAuditPdf) {
+        vaultEntries.add(
+          _VaultPdfEntry(
+            timestamp: vaultEntry.lockedAt,
+            protocol: 'THE VAULT',
+            content: vaultEntry.originalText,
+            status: vaultEntry.isResolved ? 'STABILIZED' : 'RECORDED',
+          ),
+        );
+      }
     }
 
     final aegisEntries = await AegisLogService.getEntries();
@@ -98,6 +127,17 @@ class PdfGeneratorService {
           timestamp: e.timestamp,
           content: e.signalInput ?? '',
         ));
+        continue;
+      }
+      if (_isVaultReflectionEntry(e)) {
+        vaultEntries.add(
+          _VaultPdfEntry(
+            timestamp: e.timestamp,
+            protocol: '4/8 REFLECTION',
+            content: e.signalInput ?? '',
+            status: 'RECORDED',
+          ),
+        );
         continue;
       }
       // Four Gates runs are bucketed into their own verbatim section so the
@@ -112,6 +152,17 @@ class PdfGeneratorService {
       }
       final protocolKey = _mapToProtocol(e.toolName);
       final isVoid = protocolKey == 'THE VOID';
+      if (protocolKey == 'THE VAULT') {
+        vaultEntries.add(
+          _VaultPdfEntry(
+            timestamp: e.timestamp,
+            protocol: 'THE VAULT',
+            content: e.signalInput ?? '',
+            status: _mapStatus(e.status),
+          ),
+        );
+        continue;
+      }
       final protocolLabel =
           (e.ledgerType != null && e.ledgerType!.isNotEmpty)
               ? e.ledgerType!
@@ -127,6 +178,7 @@ class PdfGeneratorService {
 
     rows.sort((a, b) => b.timestamp.compareTo(a.timestamp));
     hollowEntries.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    vaultEntries.sort((a, b) => b.timestamp.compareTo(a.timestamp));
     fourGatesEntries.sort((a, b) => b.timestamp.compareTo(a.timestamp));
 
     // Phase 1.4-C-3 / canonical-sections: pull both ratified and
@@ -148,6 +200,7 @@ class PdfGeneratorService {
 
     return _AuditPdfData(
       hollowEntries: hollowEntries,
+      vaultEntries: vaultEntries,
       fourGatesEntries: fourGatesEntries,
       auditRows: rows,
       ratifiedRetests: ratified,
@@ -158,17 +211,19 @@ class PdfGeneratorService {
   static Future<_AuditPdfData> _buildAuditPdfDataWithPlaceholder() async {
     final data = await _buildAuditPdfData();
     if (data.auditRows.isEmpty) {
-      final hasOtherSections =
-          data.hollowEntries.isNotEmpty || data.fourGatesEntries.isNotEmpty;
+      final hasOtherSections = data.hollowEntries.isNotEmpty ||
+          data.vaultEntries.isNotEmpty ||
+          data.fourGatesEntries.isNotEmpty;
       return _AuditPdfData(
         hollowEntries: data.hollowEntries,
+        vaultEntries: data.vaultEntries,
         fourGatesEntries: data.fourGatesEntries,
         auditRows: [
           _AuditRow(
             timestamp: DateTime.now(),
             protocol: '—',
             signalText: hasOtherSections
-                ? 'No additional audit rows (see THE HOLLOW / FOUR GATES sections).'
+                ? 'No additional audit rows (see THE HOLLOW / THE VAULT / FOUR GATES sections).'
                 : 'No entries recorded',
             isVoid: false,
             status: '—',
@@ -189,9 +244,8 @@ class PdfGeneratorService {
       return 'THE FROST';
     }
     if (isKineticProtocolTool(toolName)) return 'THE KINETIC';
-    if (lower.contains('anchor') ||
-        lower.contains('breath') ||
-        lower.contains('vault')) {
+    if (lower.contains('vault')) return 'THE VAULT';
+    if (lower.contains('anchor') || lower.contains('breath')) {
       return 'THE ANCHOR';
     }
     return toolName.toUpperCase();
@@ -199,6 +253,14 @@ class PdfGeneratorService {
 
   @visibleForTesting
   static String debugMapToProtocol(String toolName) => _mapToProtocol(toolName);
+
+  @visibleForTesting
+  static bool debugVaultAppearsInPdf(VaultEntry entry, DateTime now) =>
+      entry.appearsInAuditPdf(now);
+
+  @visibleForTesting
+  static bool debugIsVaultReflection(AegisLogEntry e) =>
+      _isVaultReflectionEntry(e);
 
   static String _mapStatus(String status) {
     switch (status.toLowerCase()) {
@@ -232,6 +294,8 @@ class PdfGeneratorService {
           _buildHeader(monoFont),
           pw.SizedBox(height: 24),
           _buildHollowSection(data.hollowEntries, monoFont),
+          pw.SizedBox(height: 20),
+          _buildVaultSection(data.vaultEntries, monoFont),
           pw.SizedBox(height: 20),
           // (1) FOUR GATES — VERDICT RECORDS: doctrine + verbatim runs.
           _buildFourGatesSection(
@@ -315,6 +379,87 @@ class PdfGeneratorService {
                       e.content.isEmpty ? '—' : e.content,
                       monoFont,
                     ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  /// PDF_SECTION: THE VAULT — deposits after the 8h reflection window,
+  /// plus 4/8 REFLECTION commits. Full Signal Input. No 80-char cap.
+  static pw.Widget _buildVaultSection(
+    List<_VaultPdfEntry> entries,
+    pw.Font monoFont,
+  ) {
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.Text(
+          'THE VAULT',
+          style: pw.TextStyle(
+            fontSize: 11,
+            fontWeight: pw.FontWeight.bold,
+            color: PdfColors.black,
+            font: monoFont,
+          ),
+        ),
+        pw.SizedBox(height: 6),
+        pw.Text(
+          'PURPOSE: Vault deposits that survived the 8-hour reflection window, '
+          'and 4/8 REFLECTION commits. THROW AWAY during reflection never '
+          'enters this log. Signal Input is full text.',
+          style: pw.TextStyle(
+            fontSize: 8,
+            color: PdfColors.grey700,
+            font: monoFont,
+            lineSpacing: 2,
+          ),
+        ),
+        pw.SizedBox(height: 8),
+        pw.Table(
+          border: pw.TableBorder.all(color: PdfColors.black, width: 1),
+          columnWidths: const {
+            0: pw.FlexColumnWidth(1.35),
+            1: pw.FlexColumnWidth(1.2),
+            2: pw.FlexColumnWidth(2.6),
+            3: pw.FlexColumnWidth(0.85),
+          },
+          children: [
+            pw.TableRow(
+              decoration: const pw.BoxDecoration(color: PdfColors.grey200),
+              children: [
+                _headerCell('TIMESTAMP', monoFont),
+                _headerCell('PROTOCOL', monoFont),
+                _headerCell('SIGNAL INPUT', monoFont),
+                _headerCell('STATUS', monoFont),
+              ],
+            ),
+            if (entries.isEmpty)
+              pw.TableRow(
+                children: [
+                  _bodyCell('—', monoFont),
+                  _bodyCell('THE VAULT', monoFont),
+                  _bodyCell(
+                    'No vault deposits or 4/8 REFLECTION commits recorded.',
+                    monoFont,
+                  ),
+                  _bodyCell('—', monoFont),
+                ],
+              )
+            else
+              ...entries.map(
+                (e) => pw.TableRow(
+                  children: [
+                    _bodyCell(e.timestamp.toIso8601String(), monoFont),
+                    _bodyCell(e.protocol, monoFont),
+                    _bodyCell(
+                      e.content.isEmpty ? '—' : e.content,
+                      monoFont,
+                    ),
+                    _bodyCell(e.status, monoFont),
                   ],
                 ),
               ),
@@ -1301,6 +1446,20 @@ class _HollowPdfEntry {
   final String content;
 }
 
+class _VaultPdfEntry {
+  const _VaultPdfEntry({
+    required this.timestamp,
+    required this.protocol,
+    required this.content,
+    required this.status,
+  });
+
+  final DateTime timestamp;
+  final String protocol;
+  final String content;
+  final String status;
+}
+
 class _FourGatesPdfEntry {
   const _FourGatesPdfEntry({required this.timestamp, required this.body});
 
@@ -1327,6 +1486,7 @@ enum _FourGatesVerdict { failure, overload }
 class _AuditPdfData {
   const _AuditPdfData({
     required this.hollowEntries,
+    required this.vaultEntries,
     required this.fourGatesEntries,
     required this.auditRows,
     this.ratifiedRetests = const <PendingRetest>[],
@@ -1334,6 +1494,7 @@ class _AuditPdfData {
   });
 
   final List<_HollowPdfEntry> hollowEntries;
+  final List<_VaultPdfEntry> vaultEntries;
   final List<_FourGatesPdfEntry> fourGatesEntries;
   final List<_AuditRow> auditRows;
 
