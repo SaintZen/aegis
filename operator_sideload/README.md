@@ -1,7 +1,17 @@
 # 9/19 arm64 sideload
 
-The install file is **AEGIS_SEP19_ARM64.zip** in this folder (also at the repo root).
+Cursor will not open a 119MB APK. The build is **15 files**, 8MB each:
 
-Unzip it. Inside is `app-arm64-v8a-release.apk`. Rename is not required.
+`AEGIS_SEP19_ARM64.part00` … `AEGIS_SEP19_ARM64.part14`
 
-Do not `git add` the zip. It is local to this agent.
+Join them on a computer, then install the APK.
+
+Windows (in this folder):
+
+    join_windows.bat
+
+Mac / Linux (in this folder):
+
+    sh join_mac_linux.sh
+
+That writes `AEGIS_SEP19_ARM64.apk`. Do not git-add the parts or the APK.
