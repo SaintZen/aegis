@@ -4,8 +4,15 @@ import 'package:audio_waveforms/audio_waveforms.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart' as ja;
 
+import 'package:anxiety_anchor/audio/audio_halt.dart';
 import 'package:anxiety_anchor/services/usage_log_service.dart';
 import 'package:anxiety_anchor/utils/pharmacy_temp_asset.dart';
+
+/// Pharmacy texture beds may loop only while the playback panel is
+/// open in the foreground. They halt on pause / hide / detach.
+bool pharmacyTextureLoopsWhilePanelOpen({required bool panelOpen}) {
+  return aegisBedLoopsWhileOnSurface(operatorOnSurface: panelOpen);
+}
 
 // --- Data -----------------------------------------------------------------
 
@@ -463,7 +470,8 @@ class _FlatPlaybackPanel extends StatefulWidget {
   State<_FlatPlaybackPanel> createState() => _FlatPlaybackPanelState();
 }
 
-class _FlatPlaybackPanelState extends State<_FlatPlaybackPanel> {
+class _FlatPlaybackPanelState extends State<_FlatPlaybackPanel>
+    with WidgetsBindingObserver {
   static const Duration _kSessionCap = Duration(minutes: 20);
 
   PlayerController? _pc;
@@ -478,7 +486,15 @@ class _FlatPlaybackPanelState extends State<_FlatPlaybackPanel> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     unawaited(_prepare());
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (aegisLifecycleSilencesAudio(state)) {
+      unawaited(_haltPlayback());
+    }
   }
 
   Future<void> _prepare() async {
@@ -495,7 +511,11 @@ class _FlatPlaybackPanelState extends State<_FlatPlaybackPanel> {
             shouldExtractWaveform: true,
             noOfSamplesPerSecond: 22,
           );
-          await pc.setFinishMode(finishMode: FinishMode.loop);
+          await pc.setFinishMode(
+            finishMode: pharmacyTextureLoopsWhilePanelOpen(panelOpen: true)
+                ? FinishMode.loop
+                : FinishMode.pause,
+          );
           if (!mounted) {
             pc.dispose();
             return;
@@ -507,7 +527,11 @@ class _FlatPlaybackPanelState extends State<_FlatPlaybackPanel> {
         }
       } else {
         final player = ja.AudioPlayer();
-        await player.setLoopMode(ja.LoopMode.one);
+        await player.setLoopMode(
+          pharmacyTextureLoopsWhilePanelOpen(panelOpen: true)
+              ? ja.LoopMode.one
+              : ja.LoopMode.off,
+        );
         await player.setVolume(_volume);
         await player.setAsset(widget.assetPath);
         if (!mounted) {
@@ -569,14 +593,40 @@ class _FlatPlaybackPanelState extends State<_FlatPlaybackPanel> {
     if (mounted) setState(() {});
   }
 
+  Future<void> _haltPlayback() async {
+    _clearSessionCap();
+    try {
+      await _pc?.pausePlayer();
+      await _pc?.stopPlayer();
+    } catch (_) {}
+    try {
+      await _ja?.setLoopMode(ja.LoopMode.off);
+      await _ja?.stop();
+    } catch (_) {}
+    await widget.onFlavorStop();
+    if (mounted) setState(() {});
+  }
+
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _clearSessionCap();
     if (_pc != null) {
       unawaited(_pc!.stopPlayer());
       _pc!.dispose();
+      _pc = null;
     }
-    unawaited(_ja?.dispose());
+    final jaPlayer = _ja;
+    _ja = null;
+    if (jaPlayer != null) {
+      unawaited(() async {
+        try {
+          await jaPlayer.setLoopMode(ja.LoopMode.off);
+          await jaPlayer.stop();
+        } catch (_) {}
+        await jaPlayer.dispose();
+      }());
+    }
     super.dispose();
   }
 

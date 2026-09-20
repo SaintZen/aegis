@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
 import 'package:anxiety_anchor/audio/atmosphere_mixer.dart';
+import 'package:anxiety_anchor/audio/audio_halt.dart';
 
 class SafePlaceGallery extends StatefulWidget {
   const SafePlaceGallery({super.key, this.showClose = true});
@@ -14,7 +15,8 @@ class SafePlaceGallery extends StatefulWidget {
   State<SafePlaceGallery> createState() => _SafePlaceGalleryState();
 }
 
-class _SafePlaceGalleryState extends State<SafePlaceGallery> {
+class _SafePlaceGalleryState extends State<SafePlaceGallery>
+    with WidgetsBindingObserver {
   final PageController _pageController = PageController();
   VideoPlayerController? _videoController;
   Timer? _labelTimer;
@@ -44,6 +46,7 @@ class _SafePlaceGalleryState extends State<SafePlaceGallery> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     if (_safeVideos.isNotEmpty) {
       _loadVista(_safeVideos.first.assetPath);
       _playAtmosphere(_safeVideos.first.atmosphereFile);
@@ -52,9 +55,19 @@ class _SafePlaceGalleryState extends State<SafePlaceGallery> {
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (aegisLifecycleSilencesAudio(state)) {
+      unawaited(AtmosphereMixer().stopAll());
+      unawaited(_videoController?.pause() ?? Future<void>.value());
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _labelTimer?.cancel();
     _videoController?.dispose();
+    unawaited(AtmosphereMixer().stopAll());
     super.dispose();
   }
 

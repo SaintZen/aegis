@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:video_player/video_player.dart';
 import 'package:just_audio/just_audio.dart';
 
+import 'package:anxiety_anchor/audio/audio_halt.dart';
 import 'package:anxiety_anchor/services/usage_log_service.dart';
 import 'package:anxiety_anchor/services/vault_service.dart';
 import 'package:anxiety_anchor/models/vault_model.dart';
@@ -22,7 +23,7 @@ class WorryVaultScreen extends StatefulWidget {
 }
 
 class _WorryVaultScreenState extends State<WorryVaultScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   static const String _vaultVideoPath = 'assets/videos/vault_door.mp4';
   static const String _vaultVideoFileName = 'vault_door.mp4';
   String get _vaultAssetPath =>
@@ -67,6 +68,7 @@ class _WorryVaultScreenState extends State<WorryVaultScreen>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.landscapeRight,
       DeviceOrientation.landscapeLeft,
@@ -325,7 +327,31 @@ class _WorryVaultScreenState extends State<WorryVaultScreen>
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (aegisLifecycleSilencesAudio(state)) {
+      unawaited(_haltVaultAudio());
+    }
+  }
+
+  Future<void> _haltVaultAudio() async {
+    try {
+      await _vaultAmbience.setLoopMode(LoopMode.off);
+      await _vaultAmbience.stop();
+    } catch (_) {}
+    try {
+      await _vaultSfx.stop();
+    } catch (_) {}
+    try {
+      await _systemVoice.stop();
+    } catch (_) {}
+    try {
+      await _controller?.pause();
+    } catch (_) {}
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _logVaultSession();
     _timer?.cancel();
     _lockoutTimer?.cancel();
@@ -336,9 +362,11 @@ class _WorryVaultScreenState extends State<WorryVaultScreen>
     _controller?.removeListener(_onVaultVideoControllerUpdate);
     _controller?.dispose();
     _frostController.dispose();
-    _vaultSfx.dispose();
-    _vaultAmbience.dispose();
-    _systemVoice.dispose();
+    unawaited(_haltVaultAudio().whenComplete(() {
+      _vaultSfx.dispose();
+      _vaultAmbience.dispose();
+      _systemVoice.dispose();
+    }));
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
     ]);

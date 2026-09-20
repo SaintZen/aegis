@@ -9,6 +9,7 @@ import 'package:video_player/video_player.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:vibration/vibration.dart';
 
+import 'package:anxiety_anchor/audio/audio_halt.dart';
 import 'package:anxiety_anchor/scripts/kinetic_scripts.dart';
 import 'package:anxiety_anchor/services/kinetic_voice_engine.dart';
 import 'package:anxiety_anchor/services/usage_log_service.dart';
@@ -20,7 +21,7 @@ import 'package:anxiety_anchor/widgets/affirmations_library.dart';
 /// restore audio. Closing the app, switching away, or hiding the
 /// surface all silence the looping beds.
 bool islandLifecycleSilencesAudio(AppLifecycleState state) {
-  return state != AppLifecycleState.resumed;
+  return aegisLifecycleSilencesAudio(state);
 }
 
 enum _IslandMode { vista, voice, kinetic }
@@ -571,6 +572,8 @@ class _IslandScreenState extends State<IslandScreen>
 
   Future<void> _stopVistaAudio() async {
     try {
+      await _vistaAudio.setLoopMode(LoopMode.off);
+      await _vistaAudio.setVolume(0.0);
       await _vistaAudio.stop();
     } catch (e) {
       debugPrint('Vista audio stop failed: $e');
