@@ -7,7 +7,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   test('blank field is ninety seconds — midpoint of 1–2 minutes', () {
-    expect(ScramScreen.blankDuration, const Duration(seconds: 90));
+    expect(ScramScreen.defaultBlankDuration, const Duration(seconds: 90));
     expect(ScramScreen.ledgerType, 'SCRAM');
   });
 

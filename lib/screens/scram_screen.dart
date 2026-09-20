@@ -14,13 +14,13 @@ import 'package:anxiety_anchor/services/kinetic_voice_engine.dart';
 class ScramScreen extends StatefulWidget {
   const ScramScreen({
     super.key,
-    this.blankDuration = blankDuration,
+    this.blankDuration = defaultBlankDuration,
     this.logLedgerEntry,
     this.haltVoice,
   });
 
   /// Midpoint of the 1–2 minute blank field.
-  static const Duration blankDuration = Duration(seconds: 90);
+  static const Duration defaultBlankDuration = Duration(seconds: 90);
 
   static const String ledgerType = 'SCRAM';
 
