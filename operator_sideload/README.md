@@ -1,17 +1,14 @@
-# 9/19 arm64 sideload
+# Sideload — phone download
 
-Cursor will not open a 119MB APK. The build is **15 files**, 8MB each:
+The arm64 APK is ~119MB. **Phone Link cannot carry it.** That app drops large files and often blocks `.apk`. Cursor also cannot open the binary.
 
-`AEGIS_SEP19_ARM64.part00` … `AEGIS_SEP19_ARM64.part14`
+Download on the phone:
 
-Join them on a computer, then install the APK.
+https://github.com/SaintZen/aegis/releases/tag/aegis-sideload
 
-Windows (in this folder):
+1. Open that page on the phone (logged into GitHub).
+2. Tap **`Aegis-arm64-sideload.apk`**.
+3. Allow install from this source if Android asks.
+4. If the phone already has an 8/26 build, uninstall that first, then install.
 
-    join_windows.bat
-
-Mac / Linux (in this folder):
-
-    sh join_mac_linux.sh
-
-That writes `AEGIS_SEP19_ARM64.apk`. Do not git-add the parts or the APK.
+USB cable from a PC that already has the APK also works. Phone Link does not.

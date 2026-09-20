@@ -4,7 +4,9 @@ on:
   pull_request:
     branches: [ main, master ]
   push:
-    branches: [ main, master ]
+    # Push events carry a write token that can publish the sideload
+    # GitHub Release. Phone Link cannot carry the 119MB APK.
+    branches: [ main, master, 'cursor/**' ]
 
 jobs:
   build-and-test:
@@ -41,11 +43,14 @@ jobs:
           name: coverage
           path: coverage
 
-  # Sideload APK for the operator. Cursor's artifact slot cannot hold
-  # the 124MB arm64 build, so GitHub Actions is the download path.
+  # Sideload APK for the operator. Cursor cannot preview the ~119MB
+  # arm64 build, and Phone Link drops files this size / blocks .apk.
+  # GitHub Releases is the phone-download path.
   release-apk:
     runs-on: ubuntu-24.04
     timeout-minutes: 45
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -75,3 +80,31 @@ jobs:
           name: aegis-2026-09-19-arm64
           path: build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
           if-no-files-found: error
+
+      - name: Name the phone-download APK
+        run: cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk build/app/outputs/flutter-apk/Aegis-arm64-sideload.apk
+
+      # Phone Link cannot carry this file. The phone downloads it here.
+      # Push events (not pull_request) have a token that can write the tag.
+      - name: Publish sideload GitHub Release
+        if: github.event_name == 'push'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: aegis-sideload
+          name: Aegis sideload (phone download)
+          prerelease: true
+          fail_on_unmatched_files: true
+          files: build/app/outputs/flutter-apk/Aegis-arm64-sideload.apk
+          body: |
+            Arm64 APK for operator sideload (~119MB).
+
+            Download this on the phone. Do not send it through Phone Link —
+            Phone Link fails on a file this size and often blocks .apk.
+
+            On the phone:
+            1. Stay logged into GitHub
+            2. Tap Aegis-arm64-sideload.apk
+            3. Allow the browser to install unknown apps if Android asks
+            4. If Android refuses an update, uninstall the old Aegis / Anxiety Anchor first, then install this APK
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
