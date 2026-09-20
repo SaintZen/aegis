@@ -574,8 +574,18 @@ class _FlatPlaybackPanelState extends State<_FlatPlaybackPanel>
     if (!_prepared) return;
     widget.onFlavorStart(widget.title);
     if (_pc != null) {
+      await _pc!.setFinishMode(
+        finishMode: pharmacyTextureLoopsWhilePanelOpen(panelOpen: true)
+            ? FinishMode.loop
+            : FinishMode.pause,
+      );
       await _pc!.startPlayer();
     } else if (_ja != null) {
+      await _ja!.setLoopMode(
+        pharmacyTextureLoopsWhilePanelOpen(panelOpen: true)
+            ? ja.LoopMode.one
+            : ja.LoopMode.off,
+      );
       await _ja!.play();
     }
     _startSessionCap();

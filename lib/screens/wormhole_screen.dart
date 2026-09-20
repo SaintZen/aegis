@@ -221,7 +221,7 @@ class _WormholeScreenState extends State<WormholeScreen>
     setState(() => _isActive = !_isActive);
     if (_isActive) {
       vortexController.repeat();
-      _player.play();
+      unawaited(_player.setLoopMode(LoopMode.one).then((_) => _player.play()));
     } else {
       vortexController.stop();
       _player.pause();
