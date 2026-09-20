@@ -27,6 +27,25 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  group('Bridge monolith', () {
+    testWidgets('shows SCRAM / 1.25s HOLD, never CHECKPOINT SAVED or KILL SWITCH',
+        (tester) async {
+      await tester.binding.setSurfaceSize(const Size(390, 1200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await pumpMaterialAppWithL10n(
+        tester,
+        home: const BridgeScreen(),
+      );
+
+      expect(find.text('SCRAM'), findsOneWidget);
+      expect(find.text('1.25s HOLD'), findsOneWidget);
+      expect(find.text('CHECKPOINT SAVED'), findsNothing);
+      expect(find.textContaining('KILL SWITCH'), findsNothing);
+      expect(find.text('Continue from here'), findsNothing);
+    });
+  });
+
   group('Bridge navigation', () {
     testWidgets('rows push /not-today, /pharmacy, /resources', (tester) async {
       await tester.binding.setSurfaceSize(const Size(390, 1200));

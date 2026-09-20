@@ -564,7 +564,7 @@ class MainTabController extends StatefulWidget {
 class _MainTabControllerState extends State<MainTabController> {
   late int _selectedIndex = widget.initialIndex;
 
-  // Four pillars: 0 Anchor, 1 Vistas, 2 Lab, 3 Bridge (MAINTENANCE / LEDGER opens stacked tabs)
+  // Four pillars: 0 Anchor, 1 Vistas, 2 Lab, 3 Bridge (MAINTENANCE / LEDGER opens the ledger)
   static const List<Widget> _pages = [
     HomeScreen(),             // 0: Anchor Pillar — anchor + breathing
     IslandScreen(),           // 1: Vista Pillar — Vistas, Kinetic, Affirmations

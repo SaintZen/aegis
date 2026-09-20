@@ -47,6 +47,39 @@ void main() {
     expect(find.text('The Pulse'), findsOneWidget);
   });
 
+  testWidgets('landscape Vista pages swipe; dots remain', (tester) async {
+    tester.view.physicalSize = const Size(800, 390);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: IslandScreen(),
+      ),
+    );
+    await tester.pump();
+
+    final pager = find.byKey(const ValueKey('vista_landscape_pager'));
+    expect(pager, findsOneWidget);
+
+    await tester.drag(pager, const Offset(-400, 0));
+    await tester.pump();
+
+    expect(pager, findsOneWidget);
+    expect(
+      find.byWidgetPredicate((widget) {
+        if (widget is! Container) return false;
+        if (widget.margin != const EdgeInsets.symmetric(horizontal: 6)) {
+          return false;
+        }
+        final decoration = widget.decoration;
+        return decoration is BoxDecoration && decoration.shape == BoxShape.circle;
+      }),
+      findsNWidgets(3),
+    );
+  });
+
   testWidgets('Island lifecycle pause does not throw', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(

@@ -56,6 +56,7 @@ class _IslandScreenState extends State<IslandScreen>
   int _selectedVistaIndex = 0;
   VideoPlayerController? _fullController;
   String? _fullError;
+  late final PageController _vistaPageController;
   final AudioPlayer _vistaAudio = AudioPlayer();
   final AudioPlayer _missionControlPlayer = AudioPlayer();
   int _activeVistaAudioIndex = -1;
@@ -87,6 +88,7 @@ class _IslandScreenState extends State<IslandScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _vistaPageController = PageController(initialPage: _selectedVistaIndex);
     _vistaAudio.setVolume(0.0);
     _vistaAudio.stop();
     KineticVoiceEngine.primeSilence();
@@ -111,6 +113,7 @@ class _IslandScreenState extends State<IslandScreen>
     _pulseTapTimer?.cancel();
     _pulseVisualController.dispose();
     unawaited(_logVistaSession());
+    _vistaPageController.dispose();
     _fullController?.dispose();
     unawaited(_vistaAudio.stop().whenComplete(_vistaAudio.dispose));
     unawaited(
@@ -210,6 +213,7 @@ class _IslandScreenState extends State<IslandScreen>
       _mode = _IslandMode.vista;
       _loadFullVista();
       _playVistaAudio(_selectedVistaIndex);
+      _syncVistaPagerToSelection();
     } else {
       _fullController?.dispose();
       _fullController = null;
@@ -434,14 +438,45 @@ class _IslandScreenState extends State<IslandScreen>
   }
 
   Widget _buildFullVistaBackground() {
-    if (_fullError != null) {
+    return PageView.builder(
+      key: const ValueKey('vista_landscape_pager'),
+      controller: _vistaPageController,
+      itemCount: _vistas.length,
+      onPageChanged: _onVistaPageChanged,
+      itemBuilder: (context, index) => _buildVistaPage(index),
+    );
+  }
+
+  void _onVistaPageChanged(int index) {
+    if (_selectedVistaIndex == index) return;
+    setState(() {
+      _selectedVistaIndex = index;
+      _userHasSelectedVista = true;
+    });
+    _loadFullVista();
+    _playVistaAudio(index);
+  }
+
+  void _syncVistaPagerToSelection() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_isLandscape) return;
+      if (!_vistaPageController.hasClients) return;
+      final current = _vistaPageController.page?.round() ??
+          _vistaPageController.initialPage;
+      if (current == _selectedVistaIndex) return;
+      _vistaPageController.jumpToPage(_selectedVistaIndex);
+    });
+  }
+
+  Widget _buildVistaPage(int index) {
+    if (index != _selectedVistaIndex || _fullError != null) {
       return _buildFallback();
     }
     final controller = _fullController;
     if (controller == null || !controller.value.isInitialized) {
       return _buildFallback();
     }
-    final fit = _isMountainVista(_vistas[_selectedVistaIndex].assetPath)
+    final fit = _isMountainVista(_vistas[index].assetPath)
         ? BoxFit.fitHeight
         : BoxFit.cover;
     return FittedBox(
@@ -461,10 +496,16 @@ class _IslandScreenState extends State<IslandScreen>
         final selected = index == _selectedVistaIndex;
         return GestureDetector(
           onTap: () {
-            setState(() {
-              _selectedVistaIndex = index;
-              _userHasSelectedVista = true;
-            });
+            setState(() => _userHasSelectedVista = true);
+            if (_vistaPageController.hasClients) {
+              _vistaPageController.animateToPage(
+                index,
+                duration: const Duration(milliseconds: 280),
+                curve: Curves.easeOut,
+              );
+              return;
+            }
+            setState(() => _selectedVistaIndex = index);
             _loadFullVista();
             _playVistaAudio(index);
           },

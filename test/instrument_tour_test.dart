@@ -54,6 +54,14 @@ void main() {
     }
   });
 
+  test('copy lock: station 1 BRIDGE names SCRAM as Priority 0', () {
+    final bridge =
+        InstrumentTourCopy.stations.firstWhere((s) => s.id == 'bridge');
+    expect(bridge.body, contains('SCRAM'));
+    expect(bridge.body.toLowerCase(), contains('priority 0'));
+    expect(bridge.body.toLowerCase().contains('kill switch'), isFalse);
+  });
+
   test('copy lock: the interrupt station is titled SCRAM, never Kill Switch', () {
     final scram =
         InstrumentTourCopy.stations.firstWhere((s) => s.id == 'scram');
@@ -96,7 +104,7 @@ void main() {
     expect(find.text('STATION 01 / 07'), findsOneWidget);
     expect(find.text('BRIDGE'), findsOneWidget);
     expect(find.text('KILL SWITCH'), findsNothing);
-    expect(find.text('SCRAM'), findsNothing);
+    expect(find.textContaining('SCRAM'), findsOneWidget);
     expect(find.text(InstrumentTourCopy.skipLabel), findsOneWidget);
 
     final skip = tester.widget<OutlinedButton>(

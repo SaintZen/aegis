@@ -553,7 +553,7 @@ class _WorryVaultScreenState extends State<WorryVaultScreen>
                       color: Colors.black,
                       child: SafeArea(
                         child: Padding(
-                          padding: const EdgeInsets.fromLTRB(12, 8, 12, 100),
+                          padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
                           child: VaultTimerView(
                             key: ValueKey<String>(
                               _vaultArchive!.lockedAt.toIso8601String(),
@@ -584,12 +584,13 @@ class _WorryVaultScreenState extends State<WorryVaultScreen>
                       ),
                     ),
                   ),
-                Positioned(
-                  bottom: 40,
-                  left: 20,
-                  right: 20,
-                  child: _buildVoidButton(),
-                ),
+                if (_vaultArchive == null)
+                  Positioned(
+                    bottom: 40,
+                    left: 20,
+                    right: 20,
+                    child: _buildVoidButton(),
+                  ),
               ],
             );
           },
@@ -870,15 +871,6 @@ class _WorryVaultScreenState extends State<WorryVaultScreen>
     _isLocked = false;
     _vaultReady = false;
     _vaultArchive = null;
-  }
-
-  Future<void> _showEmergencyAccessDialog() async {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('INTAKE ACTIVE. EMERGENCY ACCESS DISABLED.'),
-      ),
-    );
   }
 
   void _startFrostAnimation() {

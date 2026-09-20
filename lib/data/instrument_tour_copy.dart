@@ -32,7 +32,9 @@ class InstrumentTourCopy {
       name: 'BRIDGE',
       body:
           'The operational surface. Cold, symmetrical, stable. '
-          'The operator\'s reference plane. The imagination does not rewrite it.',
+          'The operator\'s reference plane. The imagination does not rewrite it. '
+          'SCRAM / Priority 0: 1.25-second HOLD on the Monolith. '
+          'Immediate drop into the Void.',
     ),
     InstrumentTourStation(
       id: 'hollow',
