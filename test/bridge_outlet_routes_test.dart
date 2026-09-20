@@ -46,6 +46,31 @@ void main() {
       expect(find.text('Continue from here'), findsNothing);
     });
 
+    testWidgets('MAINTENANCE / LEDGER stays inside its outlet box',
+        (tester) async {
+      await tester.binding.setSurfaceSize(const Size(320, 1200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await pumpMaterialAppWithL10n(
+        tester,
+        home: const BridgeScreen(),
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(find.textContaining('MAINTENANCE'), findsOneWidget);
+      expect(find.textContaining('LEDGER'), findsOneWidget);
+
+      final label = find.textContaining('MAINTENANCE');
+      final textBox = tester.getRect(label);
+      final outlet = tester.getRect(
+        find.ancestor(of: label, matching: find.byType(InkWell)).first,
+      );
+      expect(textBox.left, greaterThanOrEqualTo(outlet.left));
+      expect(textBox.right, lessThanOrEqualTo(outlet.right + 0.5));
+      expect(textBox.top, greaterThanOrEqualTo(outlet.top));
+      expect(textBox.bottom, lessThanOrEqualTo(outlet.bottom + 0.5));
+    });
+
     testWidgets('1.25s hold opens /scram blank field, never /wormhole',
         (tester) async {
       await tester.binding.setSurfaceSize(const Size(390, 1200));

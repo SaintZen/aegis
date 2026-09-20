@@ -149,7 +149,7 @@ class _BridgeScreenState extends State<BridgeScreen>
                             ),
                             const SizedBox(height: 4),
                             _buildBridgeOutlet(
-                              label: 'MAINTENANCE / LEDGER',
+                              label: 'MAINTENANCE /\nLEDGER',
                               semanticsHint: 'Opens calibration and ledger tools',
                               leading: const Icon(
                                 Icons.tune,
@@ -419,16 +419,26 @@ class _BridgeScreenState extends State<BridgeScreen>
       fontWeight: FontWeight.w500,
       letterSpacing: 1.2,
       fontSize: 12,
+      height: 1.25,
       color: _kBridgeOrange,
     );
+    // Outlets are monolith-width (40%). Long labels must wrap inside
+    // the orange box — a Row Text will paint past the border.
+    final Widget labelText = Text(
+      label,
+      textAlign: TextAlign.center,
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
+      style: labelStyle,
+    );
     final Widget labelRow = leading == null
-        ? Text(label, textAlign: TextAlign.center, style: labelStyle)
+        ? labelText
         : Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               leading,
-              const SizedBox(width: 10),
-              Text(label, textAlign: TextAlign.center, style: labelStyle),
+              const SizedBox(width: 8),
+              Flexible(child: labelText),
             ],
           );
 
