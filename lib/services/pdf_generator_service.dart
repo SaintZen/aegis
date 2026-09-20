@@ -239,6 +239,7 @@ class PdfGeneratorService {
   static String _mapToProtocol(String toolName) {
     final lower = toolName.toLowerCase();
     if (lower.contains('void')) return 'THE VOID';
+    if (lower.contains('scram')) return 'SCRAM';
     if (lower.contains('hollow')) return 'THE HOLLOW';
     if (lower.contains('frost') || lower.contains('ice') || lower.contains('scraper')) {
       return 'THE FROST';

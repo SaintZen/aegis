@@ -19,6 +19,7 @@ Aegis is an Industrial Somatic Stabilization Instrument.
 - **The Void:** Purge engine. 2.5s gravitational shredding.
 - **The Ledger:** Monospaced technical audit log.
 - **The Index:** Geological persistence (Stability Ratio = (Holds + Activations) / Purges).
+- **SCRAM:** Priority 0 blank field. Ninety seconds. Not the Void.
 
 ## 3. MECHANICAL CONSTRAINTS
 - **Visuals:** Flat black/navy (#000000, #001220). Zero gradients (except Hollow).
@@ -26,10 +27,11 @@ Aegis is an Industrial Somatic Stabilization Instrument.
 - **Haptics:** Actuation on `onPointerDown`. Escalation: Light -> Medium -> Heavy -> Snap.
 - **Typography:** Strictly monospaced (Courier / Roboto Mono).
 
-## 4. THE KILL SWITCH (PRIORITY 0)
+## 4. SCRAM (PRIORITY 0)
 - **Trigger:** 1.25s Long Press on Monolith Anchor.
-- **Action:** Universal interrupt. Immediate drop into Void.
-- **Sequence:** Lockout -> Navy Fade -> Shredding -> Snap -> Return to Bridge.
+- **Action:** Universal interrupt. Ninety-second blank field. The operator's world is reset.
+- **Sequence:** Lockout -> Blank field (90s) -> Snap -> Return to Bridge.
+- **Not the Void.** The Void remains the subtractive purge engine. SCRAM replaced the former Kill Switch title; the destination is a blank field, not a Void drop.
 
 ## 5. GLOSSARY (TECHNICAL DEFINITIONS)
 - **Signal:** A pre-cognitive somatic spike.

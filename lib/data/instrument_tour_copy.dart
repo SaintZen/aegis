@@ -34,7 +34,8 @@ class InstrumentTourCopy {
           'The operational surface. Cold, symmetrical, stable. '
           'The operator\'s reference plane. The imagination does not rewrite it. '
           'SCRAM / Priority 0: 1.25-second HOLD on the Monolith. '
-          'Immediate drop into the Void.',
+          'A ninety-second blank field. The operator\'s world is reset. '
+          'Not the Void.',
     ),
     InstrumentTourStation(
       id: 'hollow',
@@ -78,8 +79,9 @@ class InstrumentTourCopy {
       id: 'scram',
       name: 'SCRAM',
       body:
-          'Priority 0. Somatic override pathway. 1.25-second long press '
-          'on the Monolith. Universal interrupt. Immediate drop into the Void. '
+          'Priority 0. A ninety-second blank field. '
+          '1.25-second HOLD on the Monolith. Universal interrupt. '
+          'The operator\'s world is reset. Not the Void. '
           'Named for the reactor emergency-shutdown: decisive and protective, '
           'never violent.',
     ),

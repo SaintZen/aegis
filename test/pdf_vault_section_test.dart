@@ -17,6 +17,9 @@ void main() {
       PdfGeneratorService.debugMapToProtocol('Rescue Breath'),
       'THE ANCHOR',
     );
+    expect(PdfGeneratorService.debugMapToProtocol('SCRAM'), 'SCRAM');
+    expect(AegisLogService.toolNameFromLedgerType('SCRAM'), 'SCRAM');
+    expect(AegisLogService.toolNameFromLedgerType('THE VOID'), 'The Void');
   });
 
   test('4/8 REFLECTION ledger rows are vault-section items', () {

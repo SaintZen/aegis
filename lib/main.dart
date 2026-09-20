@@ -43,6 +43,7 @@ import 'package:anxiety_anchor/screens/unified_exercise_screen.dart';
 import 'package:anxiety_anchor/screens/vault_lock_screen.dart';
 import 'package:anxiety_anchor/screens/wall_pushes_screen.dart';
 import 'package:anxiety_anchor/screens/worry_vault_screen.dart';
+import 'package:anxiety_anchor/screens/scram_screen.dart';
 import 'package:anxiety_anchor/screens/wormhole_screen.dart';
 import 'package:anxiety_anchor/lifelines/not_today_screen.dart';
 import 'package:anxiety_anchor/models/exercise.dart';
@@ -114,6 +115,7 @@ class AnxietyAnchorApp extends StatelessWidget {
                 '/fiduciary-truth': (_) => const FiduciaryTruthScreen(),
                 '/rules-of-engagement': (_) => const RulesOfEngagementScreen(),
                 '/four-gates': (_) => const FourGatesScreen(),
+                '/scram': (_) => const ScramScreen(),
                 '/wormhole': (_) => const WormholeScreen(),
                 '/circuit-breaker': (_) => const CircuitBreakerScreen(),
                 '/lab': (_) => const AnxietyLabScreen(),

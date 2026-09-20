@@ -73,6 +73,7 @@ class AegisLogService {
   static String toolNameFromLedgerType(String type) {
     final l = type.toLowerCase();
     if (l.contains('void')) return 'The Void';
+    if (l.contains('scram')) return 'SCRAM';
     if (l.contains('hollow')) return 'The Hollow';
     if (l.contains('frost') ||
         l.contains('ice') ||

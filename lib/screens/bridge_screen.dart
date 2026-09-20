@@ -391,7 +391,8 @@ class _BridgeScreenState extends State<BridgeScreen>
 
   void _triggerScram() {
     _onAnchorPointerRelease();
-    Navigator.pushNamed(context, '/wormhole');
+    // Priority 0 blank field. Not the Void.
+    Navigator.pushNamed(context, '/scram');
   }
 
   /// Outlet row: dark fill, orange border/text — matches maintenance / ledger accent.

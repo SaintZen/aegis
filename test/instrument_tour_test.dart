@@ -59,6 +59,8 @@ void main() {
         InstrumentTourCopy.stations.firstWhere((s) => s.id == 'bridge');
     expect(bridge.body, contains('SCRAM'));
     expect(bridge.body.toLowerCase(), contains('priority 0'));
+    expect(bridge.body.toLowerCase(), contains('blank field'));
+    expect(bridge.body.toLowerCase(), contains('not the void'));
     expect(bridge.body.toLowerCase().contains('kill switch'), isFalse);
   });
 
@@ -68,6 +70,9 @@ void main() {
     expect(scram.name, 'SCRAM');
     expect(scram.body.toLowerCase(), contains('priority 0'));
     expect(scram.body.toLowerCase(), contains('monolith'));
+    expect(scram.body.toLowerCase(), contains('blank field'));
+    expect(scram.body.toLowerCase(), contains('not the void'));
+    expect(scram.body.toLowerCase().contains('drop into'), isFalse);
     final blob = InstrumentTourCopy.allOperatorFacing.join('\n').toLowerCase();
     expect(blob.contains('kill switch'), isFalse);
     expect(
