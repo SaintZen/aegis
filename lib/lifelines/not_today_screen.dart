@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:anxiety_anchor/services/boundary_identity_service.dart';
+import 'package:anxiety_anchor/theme/aegis_hud.dart';
 import 'package:anxiety_anchor/widgets/emergency_crisis_sheet.dart';
 import 'package:anxiety_anchor/widgets/not_today_bridge.dart';
 import 'package:anxiety_anchor/widgets/not_today_sheet.dart';
@@ -133,7 +134,7 @@ class _NotTodayScreenState extends State<NotTodayScreen> {
       ctx,
       duration: const Duration(milliseconds: 400),
       curve: Curves.easeInOut,
-      alignment: 0.1,
+      alignment: 0.0,
     );
   }
 
@@ -152,7 +153,7 @@ class _NotTodayScreenState extends State<NotTodayScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0A0A0A),
-      appBar: AppBar(
+      appBar: aegisHudAppBar(
         title: const Text(
           'NOT TODAY',
           style: TextStyle(
@@ -161,12 +162,10 @@ class _NotTodayScreenState extends State<NotTodayScreen> {
             fontWeight: FontWeight.w700,
           ),
         ),
-        backgroundColor: Colors.transparent,
       ),
-      body: SafeArea(
-        child: ListView(
+      body: ListView(
           controller: _scrollController,
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
           physics: const ClampingScrollPhysics(),
           children: [
             _buildSectionHeader('EXTERNAL LINKS'),
@@ -198,7 +197,6 @@ class _NotTodayScreenState extends State<NotTodayScreen> {
               child: _buildFullScriptsSection(context),
             ),
           ],
-        ),
       ),
     );
   }

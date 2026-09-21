@@ -6,6 +6,7 @@ import 'package:just_audio/just_audio.dart' as ja;
 
 import 'package:anxiety_anchor/audio/audio_halt.dart';
 import 'package:anxiety_anchor/services/usage_log_service.dart';
+import 'package:anxiety_anchor/theme/aegis_hud.dart';
 import 'package:anxiety_anchor/utils/pharmacy_temp_asset.dart';
 
 /// Pharmacy texture beds may loop only while the playback panel is
@@ -51,9 +52,6 @@ class SonicPharmacyScreen extends StatefulWidget {
 }
 
 class _SonicPharmacyScreenState extends State<SonicPharmacyScreen> {
-  /// Clears the global AEGIS HUD row drawn in [MaterialApp]'s builder (shield + label).
-  static const double _kAegisHudReserve = 42.0;
-
   final Stopwatch _sessionStopwatch = Stopwatch();
   String? _sessionFlavor;
   double? _swipeDownStartY;
@@ -277,7 +275,7 @@ class _SonicPharmacyScreenState extends State<SonicPharmacyScreen> {
         backgroundColor: const Color(0xFF0A0A0A),
         body: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.only(top: _kAegisHudReserve),
+            padding: const EdgeInsets.only(top: kAegisHudReserve),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [

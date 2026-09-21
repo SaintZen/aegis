@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -14,6 +15,9 @@ import 'package:anxiety_anchor/services/vault_service.dart';
 import 'package:anxiety_anchor/models/vault_model.dart';
 import 'package:anxiety_anchor/widgets/vault_intake_panel.dart';
 import 'package:anxiety_anchor/widgets/vault_timer_view.dart';
+
+/// SECURE FOUNDATION footer fill. Must stay opaque over the Vista/video bed.
+const Color kSecureFoundationFill = Color(0xF2000000);
 
 class WorryVaultScreen extends StatefulWidget {
   const WorryVaultScreen({super.key});
@@ -693,40 +697,49 @@ class _WorryVaultScreenState extends State<WorryVaultScreen>
   }
 
   Widget _buildVoidButton() {
-    return SizedBox(
-      width: 200,
-      child: OutlinedButton(
-        onPressed: () {
-          FocusScope.of(context).unfocus();
-          Navigator.pushNamed(context, '/wormhole');
-        },
-        style: OutlinedButton.styleFrom(
-          foregroundColor: Colors.white70,
-          side: const BorderSide(color: Colors.white30),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-        ),
-        child: const Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'SECURE FOUNDATION',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+        child: Material(
+          color: kSecureFoundationFill,
+          child: InkWell(
+            onTap: () {
+              FocusScope.of(context).unfocus();
+              Navigator.pushNamed(context, '/wormhole');
+            },
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.white30),
+              ),
+              child: const Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'SECURE FOUNDATION',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  SizedBox(height: 6),
+                  Text(
+                    'Your foundation is stored locally and encrypted. '
+                    'You are the only person with access to this perimeter.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 11,
+                      height: 1.3,
+                    ),
+                  ),
+                ],
               ),
             ),
-            SizedBox(height: 6),
-            Text(
-              'Your foundation is stored locally and encrypted. '
-              'You are the only person with access to this perimeter.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.white70,
-                fontSize: 11,
-                height: 1.3,
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:anxiety_anchor/data/instrument_tour_copy.dart';
+import 'package:anxiety_anchor/theme/aegis_hud.dart';
 
 /// First-run instrument briefing. Fires once after System Initialization
 /// and before the Bridge shell.
@@ -36,10 +37,6 @@ class InstrumentTourScreen extends StatefulWidget {
 }
 
 class _InstrumentTourScreenState extends State<InstrumentTourScreen> {
-  /// Matches [SonicPharmacyScreen] so the global AEGIS HUD does not
-  /// collide with the station title.
-  static const double _kAegisHudReserve = 42.0;
-
   int _index = 0;
   bool _finishing = false;
 
@@ -75,7 +72,7 @@ class _InstrumentTourScreenState extends State<InstrumentTourScreen> {
       backgroundColor: const Color(0xFF000000),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 24 + _kAegisHudReserve, 24, 24),
+          padding: const EdgeInsets.fromLTRB(24, 24 + kAegisHudReserve, 24, 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
