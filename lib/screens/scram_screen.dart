@@ -27,6 +27,10 @@ class ScramScreen extends StatefulWidget {
 
   static const String exitLabel = 'EXIT';
 
+  /// Corner abort ink. `white38` disappears on the blank field
+  /// for older eyes. The field stays black; the control does not.
+  static const Color exitInk = Color(0xFFEDEDED);
+
   final Duration blankDuration;
   final Future<void> Function({
     required String type,
@@ -96,24 +100,31 @@ class _ScramScreenState extends State<ScramScreen> {
         body: SafeArea(
           child: Align(
             alignment: Alignment.bottomRight,
-            child: TextButton(
-              key: const Key('scram_exit'),
-              onPressed: _exit,
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.white.withValues(alpha: 0.38),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
+              child: TextButton(
+                key: const Key('scram_exit'),
+                onPressed: _exit,
+                style: TextButton.styleFrom(
+                  foregroundColor: ScramScreen.exitInk,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 14,
+                  ),
+                  minimumSize: const Size(88, 52),
+                  side: const BorderSide(color: ScramScreen.exitInk, width: 1),
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(2)),
+                  ),
                 ),
-                minimumSize: const Size(72, 44),
-              ),
-              child: const Text(
-                ScramScreen.exitLabel,
-                style: TextStyle(
-                  fontFamily: 'RobotoMono',
-                  letterSpacing: 1.6,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 12,
+                child: const Text(
+                  ScramScreen.exitLabel,
+                  style: TextStyle(
+                    fontFamily: 'RobotoMono',
+                    letterSpacing: 1.8,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                  ),
                 ),
               ),
             ),

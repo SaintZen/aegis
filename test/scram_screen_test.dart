@@ -9,6 +9,7 @@ void main() {
   test('blank field is ninety seconds — midpoint of 1–2 minutes', () {
     expect(ScramScreen.defaultBlankDuration, const Duration(seconds: 90));
     expect(ScramScreen.ledgerType, 'SCRAM');
+    expect(ScramScreen.exitInk.r, greaterThan(0.85));
   });
 
   testWidgets('SCRAM is a blank field, not the Void', (tester) async {
@@ -128,8 +129,10 @@ void main() {
     await tester.pump();
 
     expect(find.byType(ScramScreen), findsOneWidget);
-    final exit = tester.widget<TextButton>(find.byKey(const Key('scram_exit')));
-    exit.onPressed!();
+    final exit = find.byKey(const Key('scram_exit'));
+    expect(exit, findsOneWidget);
+    await tester.ensureVisible(exit);
+    await tester.tap(exit);
     await tester.pumpAndSettle();
 
     expect(find.byType(ScramScreen), findsNothing);
