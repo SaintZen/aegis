@@ -609,7 +609,8 @@ class _MainTabControllerState extends State<MainTabController> {
       body: Column(
         children: [
           Expanded(child: _pages[_selectedIndex]),
-          if (!hideBottomNav)
+          if (!hideBottomNav &&
+              _selectedIndex != MainTabController.bridgeIndex)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
               child: CutControl(currentId: _cutDomainForTab(_selectedIndex)),

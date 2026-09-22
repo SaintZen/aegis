@@ -39,7 +39,7 @@ enum _PulsePhase {
 class IslandScreen extends StatefulWidget {
   const IslandScreen({super.key, this.initialMode});
 
-  /// `vista` or `kinetic`. CUT lands here from another domain.
+  /// `vista`, `kinetic`, or `voice`. CUT lands on vista or voice.
   final String? initialMode;
 
   @override
@@ -98,6 +98,9 @@ class _IslandScreenState extends State<IslandScreen>
     if (widget.initialMode == 'kinetic') {
       _mode = _IslandMode.kinetic;
       _lastPortraitMode = _IslandMode.kinetic;
+    } else if (widget.initialMode == 'voice') {
+      _mode = _IslandMode.voice;
+      _lastPortraitMode = _IslandMode.voice;
     }
     WidgetsBinding.instance.addObserver(this);
     _vistaPageController = PageController(initialPage: _selectedVistaIndex);
@@ -332,7 +335,7 @@ class _IslandScreenState extends State<IslandScreen>
               child: CutControl(
                 compact: true,
                 currentId:
-                    _mode == _IslandMode.kinetic ? 'kinetic' : 'vista',
+                    _mode == _IslandMode.voice ? 'voice' : 'vista',
               ),
             ),
           if (_isExecutingSequence)

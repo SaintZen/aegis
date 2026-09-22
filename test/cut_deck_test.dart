@@ -15,13 +15,15 @@ void main() {
 
   test('CUT deck is loop-break domains, not elected instruments', () {
     expect(
-      cutDeck.map((t) => t.id),
-      containsAll(<String>['breath', 'vista', 'frost', 'kinetic', 'hollow']),
+      cutDeck.map((t) => t.id).toList(),
+      ['breath', 'vista', 'frost', 'voice'],
     );
     expect(cutDeck.map((t) => t.route), isNot(contains('/scram')));
     expect(cutDeck.map((t) => t.route), isNot(contains('/wormhole')));
     expect(cutDeck.map((t) => t.route), isNot(contains('/four-gates')));
     expect(cutDeck.map((t) => t.route), isNot(contains('/vault')));
+    expect(cutDeck.map((t) => t.route), isNot(contains('/hollow')));
+    expect(cutDeck.map((t) => t.id), isNot(contains('kinetic')));
   });
 
   test('CUT never repeats the domain that is not landing', () {
@@ -44,6 +46,7 @@ void main() {
           '/island': (_) => const Scaffold(body: Text('ISLAND')),
           '/scraper': (_) => const Scaffold(body: Text('FROST')),
           '/hollow': (_) => const Scaffold(body: Text('HOLLOW')),
+          '/bridge': (_) => const Scaffold(body: Text('BRIDGE')),
         },
       ),
     );
@@ -56,10 +59,11 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('FROST'), findsNothing);
+    expect(find.text('HOLLOW'), findsNothing);
+    expect(find.text('BRIDGE'), findsNothing);
     expect(
       find.text('BREATH').evaluate().isNotEmpty ||
-          find.text('ISLAND').evaluate().isNotEmpty ||
-          find.text('HOLLOW').evaluate().isNotEmpty,
+          find.text('ISLAND').evaluate().isNotEmpty,
       isTrue,
     );
   });

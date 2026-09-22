@@ -7,9 +7,6 @@ import 'package:flutter/services.dart';
 import 'package:anxiety_anchor/services/aegis_log_service.dart';
 import 'package:anxiety_anchor/services/calibration_service.dart';
 import 'package:anxiety_anchor/services/usage_log_service.dart';
-import 'package:anxiety_anchor/theme/aegis_hud.dart';
-import 'package:anxiety_anchor/widgets/cut_control.dart';
-
 enum _HollowMode { implicit, triggered, overload, vigilance, unknown }
 
 /// The Hollow — Passive Sonar Array.
@@ -403,11 +400,6 @@ class _HollowScreenState extends State<HollowScreen>
                   letterSpacing: 0.4,
                 ),
               ),
-            ),
-            Positioned(
-              top: MediaQuery.of(context).padding.top + kAegisHudReserve,
-              right: 16,
-              child: const CutControl(compact: true, currentId: 'hollow'),
             ),
             // Sub-surface "Well" depth gradient
             const DecoratedBox(

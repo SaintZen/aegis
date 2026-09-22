@@ -1,10 +1,11 @@
 import 'dart:math';
 
-/// Cross-instrument loop cut. If ice scrape is not landing, the next
-/// draw is Breath or Vista — not another scrape. OVERRIDE stays Kinetic.
-/// CUT is the domain switch.
+/// Cross-instrument loop cut. Sensory domains only: Breath, Vista,
+/// Frost, Voice. If ice scrape is not landing, the next draw is Breath
+/// or Vista — not another scrape, not Kinetic, not a write-in utility.
 ///
-/// Not in this deck: Void, SCRAM, Four Gates, Vault. Those are elected.
+/// Not in this deck: Kinetic, Bridge, Hollow, Vault, Void, SCRAM,
+/// Four Gates, Not Today, Advocacy. Those stay elected or written.
 class CutTarget {
   const CutTarget({
     required this.id,
@@ -33,23 +34,17 @@ const CutTarget frostCut = CutTarget(
   route: '/scraper',
 );
 
-const CutTarget kineticCut = CutTarget(
-  id: 'kinetic',
+const CutTarget voiceCut = CutTarget(
+  id: 'voice',
   route: '/island',
-  arguments: 'kinetic',
-);
-
-const CutTarget hollowCut = CutTarget(
-  id: 'hollow',
-  route: '/hollow',
+  arguments: 'voice',
 );
 
 const List<CutTarget> cutDeck = [
   breathCut,
   vistaCut,
   frostCut,
-  kineticCut,
-  hollowCut,
+  voiceCut,
 ];
 
 CutTarget? cutTargetById(String id) {
