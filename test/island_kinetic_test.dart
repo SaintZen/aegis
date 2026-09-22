@@ -1,9 +1,23 @@
 import 'package:anxiety_anchor/screens/island_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUp(() {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+      const MethodChannel('vibration'),
+      (call) async {
+        if (call.method == 'hasVibrator') return false;
+        return null;
+      },
+    );
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(SystemChannels.platform, (_) async => null);
+  });
 
   test('island audio silences on every non-resumed lifecycle state', () {
     expect(islandLifecycleSilencesAudio(AppLifecycleState.resumed), isFalse);

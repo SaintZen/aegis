@@ -706,36 +706,38 @@ class _IslandScreenState extends State<IslandScreen>
         await _logKineticUse(exerciseKey, 'Acknowledged');
       }
     } finally {
-      if (gen != _kineticGeneration) return;
-      if (exerciseKey == 'pulse') {
-        await KineticVoiceEngine.stopPulseThrum();
-        if (gen != _kineticGeneration) return;
-        _setPulsePhase(_PulsePhase.none);
-        _stopPulseVisualPulse();
-        _stopPulseTapLoop();
-      }
-      if (exerciseKey == 'somatic_shaking' || exerciseKey == 'tense_release') {
+      if (gen == _kineticGeneration) {
+        if (exerciseKey == 'pulse') {
+          await KineticVoiceEngine.stopPulseThrum();
+        }
+        if (gen == _kineticGeneration && exerciseKey == 'pulse') {
+          _setPulsePhase(_PulsePhase.none);
+          _stopPulseVisualPulse();
+          _stopPulseTapLoop();
+        }
+        if (exerciseKey == 'somatic_shaking' || exerciseKey == 'tense_release') {
+          _stopShakeStaccato();
+          await KineticVoiceEngine.stopPulseThrum();
+        }
+        if (exerciseKey == 'muscle_clench') {
+          _stopIsometricRamp();
+          await KineticVoiceEngine.stopPulseThrum();
+        }
+        if (exerciseKey == 'headphones_dark') {
+          await KineticVoiceEngine.stopEngineThrum();
+        }
         _stopShakeStaccato();
-        await KineticVoiceEngine.stopPulseThrum();
-      }
-      if (exerciseKey == 'muscle_clench') {
         _stopIsometricRamp();
-        await KineticVoiceEngine.stopPulseThrum();
-      }
-      if (exerciseKey == 'headphones_dark') {
-        await KineticVoiceEngine.stopEngineThrum();
-      }
-      _stopShakeStaccato();
-      _stopIsometricRamp();
-      await _vistaAudio.setVolume(0.0);
-      if (_sequenceAlive(gen)) {
-        setState(() {
-          _isExecutingSequence = false;
-          _currentRep = 0;
-          _kineticView = _KineticView.menu;
-          _mode = _IslandMode.kinetic;
-          _activeExerciseKey = null;
-        });
+        await _vistaAudio.setVolume(0.0);
+        if (_sequenceAlive(gen)) {
+          setState(() {
+            _isExecutingSequence = false;
+            _currentRep = 0;
+            _kineticView = _KineticView.menu;
+            _mode = _IslandMode.kinetic;
+            _activeExerciseKey = null;
+          });
+        }
       }
     }
   }
