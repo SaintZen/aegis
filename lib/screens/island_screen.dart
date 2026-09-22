@@ -15,6 +15,7 @@ import 'package:anxiety_anchor/services/kinetic_voice_engine.dart';
 import 'package:anxiety_anchor/services/usage_log_service.dart';
 import 'package:anxiety_anchor/services/aegis_log_service.dart';
 import 'package:anxiety_anchor/widgets/affirmations_library.dart';
+import 'package:anxiety_anchor/widgets/cut_control.dart';
 
 /// Vista beds and Kinetic voice halt when the operator leaves the
 /// foreground. [AppLifecycleState.resumed] is the only state that may
@@ -36,7 +37,10 @@ enum _PulsePhase {
 }
 
 class IslandScreen extends StatefulWidget {
-  const IslandScreen({super.key});
+  const IslandScreen({super.key, this.initialMode});
+
+  /// `vista` or `kinetic`. CUT lands here from another domain.
+  final String? initialMode;
 
   @override
   State<IslandScreen> createState() => _IslandScreenState();
@@ -91,6 +95,10 @@ class _IslandScreenState extends State<IslandScreen>
   @override
   void initState() {
     super.initState();
+    if (widget.initialMode == 'kinetic') {
+      _mode = _IslandMode.kinetic;
+      _lastPortraitMode = _IslandMode.kinetic;
+    }
     WidgetsBinding.instance.addObserver(this);
     _vistaPageController = PageController(initialPage: _selectedVistaIndex);
     _vistaAudio.setVolume(0.0);
@@ -315,6 +323,18 @@ class _IslandScreenState extends State<IslandScreen>
               ),
             ),
           ),
+          if (!_isLandscape &&
+              !_isExecutingSequence &&
+              ModalRoute.of(context)?.settings.name == '/island')
+            Positioned(
+              top: 88,
+              right: 16,
+              child: CutControl(
+                compact: true,
+                currentId:
+                    _mode == _IslandMode.kinetic ? 'kinetic' : 'vista',
+              ),
+            ),
           if (_isExecutingSequence)
             Positioned.fill(
               child: Stack(

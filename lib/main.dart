@@ -20,6 +20,7 @@ import 'package:anxiety_anchor/screens/hollow_screen.dart';
 import 'package:anxiety_anchor/screens/home_screen.dart';
 import 'package:anxiety_anchor/screens/fiduciary_truth_screen.dart';
 import 'package:anxiety_anchor/screens/island_screen.dart';
+import 'package:anxiety_anchor/widgets/cut_control.dart';
 import 'package:anxiety_anchor/screens/kinetic_voice_drills_screen.dart';
 import 'package:anxiety_anchor/screens/kinetic_armory_screen.dart';
 import 'package:anxiety_anchor/screens/kinetic_action_screen.dart';
@@ -119,7 +120,15 @@ class AnxietyAnchorApp extends StatelessWidget {
                 '/wormhole': (_) => const WormholeScreen(),
                 '/circuit-breaker': (_) => const CircuitBreakerScreen(),
                 '/lab': (_) => const AnxietyLabScreen(),
-                '/island': (_) => const IslandScreen(),
+                '/island': (ctx) {
+                  final args = ModalRoute.of(ctx)?.settings.arguments;
+                  String? mode;
+                  if (args is String) mode = args;
+                  if (args is Map) {
+                    mode = args['mode'] as String?;
+                  }
+                  return IslandScreen(initialMode: mode);
+                },
                 '/home': (_) => const HomeScreen(),
                 '/terms-of-use': (_) => const TermsOfUseScreen(),
                 '/privacy': (_) => const PrivacyPolicyScreen(),
@@ -580,13 +589,33 @@ class _MainTabControllerState extends State<MainTabController> {
     });
   }
 
+  String? _cutDomainForTab(int index) {
+    switch (index) {
+      case 0:
+        return 'breath';
+      case 1:
+        return 'vista';
+      default:
+        return CutMemory.lastId;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isLandscape =
         MediaQuery.of(context).orientation == Orientation.landscape;
     final hideBottomNav = isLandscape && _selectedIndex == 1;
     return Scaffold(
-      body: _pages[_selectedIndex],
+      body: Column(
+        children: [
+          Expanded(child: _pages[_selectedIndex]),
+          if (!hideBottomNav)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+              child: CutControl(currentId: _cutDomainForTab(_selectedIndex)),
+            ),
+        ],
+      ),
       bottomNavigationBar: hideBottomNav
           ? null
           : Padding(
