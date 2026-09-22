@@ -800,6 +800,12 @@ class _IslandScreenState extends State<IslandScreen>
     unawaited(_launchOverride());
   }
 
+  /// Silent draw. No rumble — LOW SIG is for when the phone stays down.
+  void _drawLowSig() {
+    final next = pickKineticLowSig(previousId: _expandedStealthId);
+    setState(() => _expandedStealthId = next);
+  }
+
   String _vistaAudioPathForIndex(int index) {
     switch (index) {
       case 0:
@@ -1484,7 +1490,7 @@ class _IslandScreenState extends State<IslandScreen>
         ...kineticFieldDeck.map(_buildFieldRow),
         const SizedBox(height: 20),
         const Text(
-          'POOR MAN',
+          'LOW SIG',
           textAlign: TextAlign.left,
           style: TextStyle(
             color: Colors.white70,
@@ -1503,6 +1509,8 @@ class _IslandScreenState extends State<IslandScreen>
             fontFamily: 'RobotoMono',
           ),
         ),
+        const SizedBox(height: 8),
+        _buildLowSigDraw(),
         const SizedBox(height: 8),
         ...kineticStealthDeck.map(_buildStealthRow),
       ],
@@ -1593,6 +1601,33 @@ class _IslandScreenState extends State<IslandScreen>
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildLowSigDraw() {
+    return GestureDetector(
+      key: const Key('kinetic_low_sig_draw'),
+      onTap: _drawLowSig,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.55),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.white38),
+        ),
+        child: const Text(
+          '[ DRAW ]',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: Colors.white70,
+            fontSize: 13,
+            letterSpacing: 2.0,
+            fontWeight: FontWeight.w700,
+            fontFamily: 'RobotoMono',
+          ),
+        ),
+      ),
     );
   }
 

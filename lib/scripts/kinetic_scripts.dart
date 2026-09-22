@@ -163,9 +163,9 @@ const List<KineticScript> kineticFieldDeck = [
   sinkWashScript,
 ];
 
-/// Pocket protocols. They land on a bus or in a meeting with the
+/// LOW SIG protocols. They land on a bus or in a meeting with the
 /// instrument closed. OVERRIDE does not draw from this deck — a phone
-/// rumble would break stealth.
+/// rumble would break a low-signature hold.
 const KineticScript lobeScript = KineticScript(
   id: 'stealth_lobe',
   title: 'LOBE',
@@ -245,7 +245,7 @@ const List<KineticScript> kineticStealthDeck = [
 
 /// Menu instruments plus field protocols. OVERRIDE draws from this deck.
 /// Temporary landing is the win. SWAP if the current instrument does not.
-/// Stealth / poor-man cards stay out — they land with the phone down.
+/// LOW SIG cards stay out — they land with the phone down.
 List<KineticScript> get kineticOptionDeck => <KineticScript>[
       ...kineticScriptCards,
       ...kineticFieldDeck,
@@ -261,15 +261,15 @@ KineticScript? kineticScriptById(String id) {
   return null;
 }
 
-/// Next instrument for OVERRIDE / SWAP. Never repeats [previousId] when
-/// the deck has more than one entry.
-String pickKineticOverride({
+String _pickFromDeck(
+  List<KineticScript> deck, {
   String? previousId,
   int Function(int max)? roll,
+  required String fallback,
 }) {
-  final ids = kineticOptionDeck.map((s) => s.id).toList(growable: false);
+  final ids = deck.map((s) => s.id).toList(growable: false);
   final next = roll ?? Random().nextInt;
-  if (ids.isEmpty) return wallPushScript.id;
+  if (ids.isEmpty) return fallback;
   var pick = ids[next(ids.length)];
   if (previousId == null || ids.length == 1) return pick;
   var guard = 0;
@@ -281,6 +281,34 @@ String pickKineticOverride({
     pick = ids.firstWhere((id) => id != previousId);
   }
   return pick;
+}
+
+/// Next instrument for OVERRIDE / SWAP. Never repeats [previousId] when
+/// the deck has more than one entry.
+String pickKineticOverride({
+  String? previousId,
+  int Function(int max)? roll,
+}) {
+  return _pickFromDeck(
+    kineticOptionDeck,
+    previousId: previousId,
+    roll: roll,
+    fallback: wallPushScript.id,
+  );
+}
+
+/// Silent LOW SIG draw. Never repeats [previousId] when the deck has
+/// more than one entry. No haptics live on this path.
+String pickKineticLowSig({
+  String? previousId,
+  int Function(int max)? roll,
+}) {
+  return _pickFromDeck(
+    kineticStealthDeck,
+    previousId: previousId,
+    roll: roll,
+    fallback: lobeScript.id,
+  );
 }
 
 /// Canonical Aegis-log tool name. Protocol maps to THE KINETIC.

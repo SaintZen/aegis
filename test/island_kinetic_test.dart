@@ -1,4 +1,5 @@
 import 'package:anxiety_anchor/screens/island_screen.dart';
+import 'package:anxiety_anchor/scripts/kinetic_scripts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -56,8 +57,20 @@ void main() {
     expect(find.text('STALL'), findsOneWidget);
     expect(find.text('HEADPHONES'), findsOneWidget);
     expect(find.text('SINK'), findsOneWidget);
-    expect(find.text('POOR MAN'), findsOneWidget);
+    expect(find.text('LOW SIG'), findsOneWidget);
+    expect(find.text('POOR MAN'), findsNothing);
     expect(find.text('No instrument. Bus or meeting. Phone stays down.'), findsOneWidget);
+    expect(find.byKey(const Key('kinetic_low_sig_draw')), findsOneWidget);
+    await tester.ensureVisible(find.byKey(const Key('kinetic_low_sig_draw')));
+    await tester.tap(find.byKey(const Key('kinetic_low_sig_draw')));
+    await tester.pump();
+    expect(
+      kineticStealthDeck.where(
+        (script) => find.text(script.instructions).evaluate().isNotEmpty,
+      ),
+      hasLength(1),
+    );
+    expect(find.byKey(const Key('kinetic_swap')), findsNothing);
     await tester.ensureVisible(find.text('LOBE'));
     expect(find.text('LOBE'), findsOneWidget);
     expect(find.text('TOES'), findsOneWidget);

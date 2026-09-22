@@ -52,6 +52,13 @@ void main() {
     expect(kineticInstrumentLabel('stealth_jaw'), 'JAW');
     expect(isKineticStealthProtocol('stealth_lobe'), isTrue);
     expect(isKineticStealthProtocol('hot_car'), isFalse);
+
+    final lowSig = pickKineticLowSig(
+      previousId: 'stealth_lobe',
+      roll: (_) => kineticStealthDeck.indexWhere((s) => s.id == 'stealth_lobe'),
+    );
+    expect(lowSig, isNot('stealth_lobe'));
+    expect(kineticStealthDeck.map((s) => s.id), contains(lowSig));
   });
 
   test('audit protocol is THE KINETIC, not THE ANCHOR', () {
