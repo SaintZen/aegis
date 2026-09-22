@@ -79,8 +79,14 @@ void main() {
     expect(find.text('HEEL'), findsOneWidget);
     expect(find.text('THUMB'), findsOneWidget);
 
-    await tester.tap(find.text('LOBE'));
-    await tester.pump();
+    // DRAW expands one random LOW SIG card. LOBE tap toggles; if DRAW
+    // already landed on LOBE, a second tap collapses the instructions.
+    final lobeRow = find.byKey(const Key('kinetic_stealth_stealth_lobe'));
+    await tester.ensureVisible(lobeRow);
+    if (find.textContaining('Left earlobe').evaluate().isEmpty) {
+      await tester.tap(lobeRow);
+      await tester.pump();
+    }
     expect(find.textContaining('Left earlobe'), findsOneWidget);
     expect(find.byKey(const Key('kinetic_swap')), findsNothing);
 
