@@ -69,6 +69,7 @@ class _IslandScreenState extends State<IslandScreen>
   bool _sessionHalted = false;
   bool _kineticLogged = false;
   String? _activeExerciseKey;
+  String? _expandedStealthId;
   int _kineticGeneration = 0;
   DateTime? _tumblerTickAt;
   _PulsePhase _pulsePhase = _PulsePhase.none;
@@ -1481,6 +1482,29 @@ class _IslandScreenState extends State<IslandScreen>
         ),
         const SizedBox(height: 8),
         ...kineticFieldDeck.map(_buildFieldRow),
+        const SizedBox(height: 20),
+        const Text(
+          'POOR MAN',
+          textAlign: TextAlign.left,
+          style: TextStyle(
+            color: Colors.white70,
+            fontSize: 11,
+            letterSpacing: 1.6,
+            fontWeight: FontWeight.w600,
+            fontFamily: 'RobotoMono',
+          ),
+        ),
+        const SizedBox(height: 4),
+        const Text(
+          'No instrument. Bus or meeting. Phone stays down.',
+          style: TextStyle(
+            color: Colors.white38,
+            fontSize: 11,
+            fontFamily: 'RobotoMono',
+          ),
+        ),
+        const SizedBox(height: 8),
+        ...kineticStealthDeck.map(_buildStealthRow),
       ],
     );
   }
@@ -1569,6 +1593,66 @@ class _IslandScreenState extends State<IslandScreen>
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildStealthRow(KineticScript script) {
+    final expanded = _expandedStealthId == script.id;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: InkWell(
+        key: Key('kinetic_stealth_${script.id}'),
+        onTap: () => setState(() {
+          _expandedStealthId = expanded ? null : script.id;
+        }),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.55),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: expanded ? Colors.white54 : Colors.white24,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                script.title,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 13,
+                  letterSpacing: 1.2,
+                  fontWeight: FontWeight.w700,
+                  fontFamily: 'RobotoMono',
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                script.command,
+                style: const TextStyle(
+                  color: Colors.white54,
+                  fontSize: 11,
+                  fontFamily: 'RobotoMono',
+                ),
+              ),
+              if (expanded) ...[
+                const SizedBox(height: 8),
+                Text(
+                  script.instructions,
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 12,
+                    height: 1.35,
+                    fontFamily: 'RobotoMono',
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
     );
   }
 

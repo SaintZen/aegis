@@ -163,8 +163,89 @@ const List<KineticScript> kineticFieldDeck = [
   sinkWashScript,
 ];
 
+/// Pocket protocols. They land on a bus or in a meeting with the
+/// instrument closed. OVERRIDE does not draw from this deck — a phone
+/// rumble would break stealth.
+const KineticScript lobeScript = KineticScript(
+  id: 'stealth_lobe',
+  title: 'LOBE',
+  command: 'Pinch. Hold. Release.',
+  description: 'Earlobe hold with zero outward motion',
+  instructions:
+      'Left earlobe between thumb and finger. Pinch, hold, release. '
+      'Three holds. No sound.',
+  audioAsset: '',
+  hapticPattern: KineticHapticPattern.continuousSqueeze,
+);
+
+const KineticScript toesScript = KineticScript(
+  id: 'stealth_toes',
+  title: 'TOES',
+  command: 'Clench. Hold. Release.',
+  description: 'Shoe clench under a seat',
+  instructions:
+      'Toes clench inside the shoe. Hold. Release. Seat stays still.',
+  audioAsset: '',
+  hapticPattern: KineticHapticPattern.continuousSqueeze,
+);
+
+const KineticScript jawScript = KineticScript(
+  id: 'stealth_jaw',
+  title: 'JAW',
+  command: 'Tongue. Slack. Hold.',
+  description: 'Tongue-to-palate hold, jaw slack',
+  instructions:
+      'Tongue to the roof of the mouth. Jaw slack. Teeth do not meet.',
+  audioAsset: '',
+  hapticPattern: KineticHapticPattern.continuousPush,
+);
+
+const KineticScript fistScript = KineticScript(
+  id: 'stealth_fist',
+  title: 'FIST',
+  command: 'Squeeze. Hold. Open.',
+  description: 'Hidden isometric in a pocket or under a table',
+  instructions:
+      'One fist in the pocket or under the table. Squeeze, hold, open. '
+      'No visible motion.',
+  audioAsset: '',
+  hapticPattern: KineticHapticPattern.continuousSqueeze,
+);
+
+const KineticScript heelScript = KineticScript(
+  id: 'stealth_heel',
+  title: 'HEEL',
+  command: 'Press. Hold. Release.',
+  description: 'Seated heel press into the floor',
+  instructions:
+      'One heel presses the floor. Hold. Release. Chair does not move.',
+  audioAsset: '',
+  hapticPattern: KineticHapticPattern.continuousPush,
+);
+
+const KineticScript thumbScript = KineticScript(
+  id: 'stealth_thumb',
+  title: 'THUMB',
+  command: 'Press. Hold. Open.',
+  description: 'Hidden thumb press into the opposite palm',
+  instructions:
+      'Thumb presses the opposite palm. Hidden. Three holds.',
+  audioAsset: '',
+  hapticPattern: KineticHapticPattern.continuousSqueeze,
+);
+
+const List<KineticScript> kineticStealthDeck = [
+  lobeScript,
+  toesScript,
+  jawScript,
+  fistScript,
+  heelScript,
+  thumbScript,
+];
+
 /// Menu instruments plus field protocols. OVERRIDE draws from this deck.
 /// Temporary landing is the win. SWAP if the current instrument does not.
+/// Stealth / poor-man cards stay out — they land with the phone down.
 List<KineticScript> get kineticOptionDeck => <KineticScript>[
       ...kineticScriptCards,
       ...kineticFieldDeck,
@@ -172,6 +253,9 @@ List<KineticScript> get kineticOptionDeck => <KineticScript>[
 
 KineticScript? kineticScriptById(String id) {
   for (final script in kineticOptionDeck) {
+    if (script.id == id) return script;
+  }
+  for (final script in kineticStealthDeck) {
     if (script.id == id) return script;
   }
   return null;
@@ -231,9 +315,28 @@ String kineticInstrumentLabel(String exerciseKey) {
       return 'HEADPHONES';
     case 'sink_wash':
       return 'SINK';
+    case 'stealth_lobe':
+      return 'LOBE';
+    case 'stealth_toes':
+      return 'TOES';
+    case 'stealth_jaw':
+      return 'JAW';
+    case 'stealth_fist':
+      return 'FIST';
+    case 'stealth_heel':
+      return 'HEEL';
+    case 'stealth_thumb':
+      return 'THUMB';
     default:
       return exerciseKey.replaceAll('_', ' ').toUpperCase();
   }
+}
+
+bool isKineticStealthProtocol(String exerciseKey) {
+  for (final script in kineticStealthDeck) {
+    if (script.id == exerciseKey) return true;
+  }
+  return false;
 }
 
 /// True when an Aegis-log toolName is a Kinetic instrument.

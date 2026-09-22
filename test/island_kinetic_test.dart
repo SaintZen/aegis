@@ -28,7 +28,7 @@ void main() {
   });
 
   testWidgets('Kinetic Active launches the four Menu sequences', (tester) async {
-    tester.view.physicalSize = const Size(390, 1200);
+    tester.view.physicalSize = const Size(390, 1800);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -56,6 +56,20 @@ void main() {
     expect(find.text('STALL'), findsOneWidget);
     expect(find.text('HEADPHONES'), findsOneWidget);
     expect(find.text('SINK'), findsOneWidget);
+    expect(find.text('POOR MAN'), findsOneWidget);
+    expect(find.text('No instrument. Bus or meeting. Phone stays down.'), findsOneWidget);
+    await tester.ensureVisible(find.text('LOBE'));
+    expect(find.text('LOBE'), findsOneWidget);
+    expect(find.text('TOES'), findsOneWidget);
+    expect(find.text('JAW'), findsOneWidget);
+    expect(find.text('FIST'), findsOneWidget);
+    expect(find.text('HEEL'), findsOneWidget);
+    expect(find.text('THUMB'), findsOneWidget);
+
+    await tester.tap(find.text('LOBE'));
+    await tester.pump();
+    expect(find.textContaining('Left earlobe'), findsOneWidget);
+    expect(find.byKey(const Key('kinetic_swap')), findsNothing);
 
     await tester.tap(find.text('ACTIVE'));
     await tester.pump();

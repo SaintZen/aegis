@@ -22,8 +22,13 @@ void main() {
 
   test('OVERRIDE never repeats the previous instrument', () {
     expect(kineticFieldDeck.length, 6);
+    expect(kineticStealthDeck.length, 6);
     expect(kineticOptionDeck.length, 10);
     expect(kineticScripts.length, 4);
+    expect(
+      kineticOptionDeck.map((s) => s.id),
+      isNot(contains('stealth_lobe')),
+    );
 
     final locked = pickKineticOverride(
       previousId: 'hot_car',
@@ -42,6 +47,11 @@ void main() {
     expect(isKineticProtocolTool('HEATWAVE'), isTrue);
     expect(PdfGeneratorService.debugMapToProtocol('HOT CAR'), 'THE KINETIC');
     expect(PdfGeneratorService.debugMapToProtocol('HEADPHONES'), 'THE KINETIC');
+    expect(kineticInstrumentLabel('stealth_lobe'), 'LOBE');
+    expect(kineticInstrumentLabel('stealth_toes'), 'TOES');
+    expect(kineticInstrumentLabel('stealth_jaw'), 'JAW');
+    expect(isKineticStealthProtocol('stealth_lobe'), isTrue);
+    expect(isKineticStealthProtocol('hot_car'), isFalse);
   });
 
   test('audit protocol is THE KINETIC, not THE ANCHOR', () {
