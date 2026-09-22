@@ -20,6 +20,30 @@ void main() {
     expect(kineticInstrumentLabel('wall_push'), isNot(contains('82')));
   });
 
+  test('OVERRIDE never repeats the previous instrument', () {
+    expect(kineticFieldDeck.length, 6);
+    expect(kineticOptionDeck.length, 10);
+    expect(kineticScripts.length, 4);
+
+    final locked = pickKineticOverride(
+      previousId: 'hot_car',
+      roll: (_) => kineticOptionDeck.indexWhere((s) => s.id == 'hot_car'),
+    );
+    expect(locked, isNot('hot_car'));
+    expect(kineticOptionDeck.map((s) => s.id), contains(locked));
+
+    expect(kineticInstrumentLabel('hot_car'), 'HOT CAR');
+    expect(kineticInstrumentLabel('winter_subzero'), 'WINTER');
+    expect(kineticInstrumentLabel('summer_heatwave'), 'HEATWAVE');
+    expect(kineticInstrumentLabel('stall_reset'), 'STALL');
+    expect(kineticInstrumentLabel('headphones_dark'), 'HEADPHONES');
+    expect(kineticInstrumentLabel('sink_wash'), 'SINK');
+    expect(isKineticProtocolTool('HOT CAR'), isTrue);
+    expect(isKineticProtocolTool('HEATWAVE'), isTrue);
+    expect(PdfGeneratorService.debugMapToProtocol('HOT CAR'), 'THE KINETIC');
+    expect(PdfGeneratorService.debugMapToProtocol('HEADPHONES'), 'THE KINETIC');
+  });
+
   test('audit protocol is THE KINETIC, not THE ANCHOR', () {
     expect(PdfGeneratorService.debugMapToProtocol('Kinetic'), 'THE KINETIC');
     expect(PdfGeneratorService.debugMapToProtocol('Wall Push'), 'THE KINETIC');

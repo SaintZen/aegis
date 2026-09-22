@@ -34,6 +34,14 @@ void main() {
     expect(find.text('Isometric'), findsOneWidget);
     expect(find.text('The Pulse'), findsOneWidget);
     expect(find.text('SELECT A SEQUENCE'), findsNothing);
+    expect(find.byKey(const Key('kinetic_override')), findsOneWidget);
+    expect(find.text('[ OVERRIDE ]'), findsOneWidget);
+    expect(find.text('HOT CAR'), findsOneWidget);
+    expect(find.text('WINTER'), findsOneWidget);
+    expect(find.text('HEATWAVE'), findsOneWidget);
+    expect(find.text('STALL'), findsOneWidget);
+    expect(find.text('HEADPHONES'), findsOneWidget);
+    expect(find.text('SINK'), findsOneWidget);
 
     await tester.tap(find.text('ACTIVE'));
     await tester.pump();
@@ -45,6 +53,35 @@ void main() {
     expect(find.text('The Shake'), findsOneWidget);
     expect(find.text('Isometric'), findsOneWidget);
     expect(find.text('The Pulse'), findsOneWidget);
+    expect(find.byKey(const Key('kinetic_override')), findsOneWidget);
+    expect(find.text('HOT CAR'), findsOneWidget);
+  });
+
+  testWidgets('OVERRIDE fires an instrument and exposes SWAP', (tester) async {
+    tester.view.physicalSize = const Size(390, 1400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: IslandScreen(),
+      ),
+    );
+    await tester.pump();
+
+    await tester.tap(find.text('KINETIC'));
+    await tester.pump();
+    await tester.ensureVisible(find.byKey(const Key('kinetic_override')));
+    await tester.tap(find.byKey(const Key('kinetic_override')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+
+    expect(find.byKey(const Key('kinetic_swap')), findsOneWidget);
+    expect(find.text('SWAP'), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump(const Duration(seconds: 8));
   });
 
   testWidgets('landscape Vista pages swipe; dots remain', (tester) async {

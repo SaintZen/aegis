@@ -1,3 +1,5 @@
+import 'dart:math';
+
 class KineticScript {
   const KineticScript({
     required this.id,
@@ -81,6 +83,122 @@ const List<KineticScript> kineticScriptCards = [
   pulseScript,
 ];
 
+const KineticScript hotCarScript = KineticScript(
+  id: 'hot_car',
+  title: 'HOT CAR',
+  command: 'Vent. Clench. Release.',
+  description: 'Cabin heat dump plus wheel isometric',
+  instructions:
+      'Aim the A/C at the inner wrists and the side of the neck. '
+      'Both hands clench the wheel, hold, release. Repeat.',
+  audioAsset: '',
+  hapticPattern: KineticHapticPattern.continuousSqueeze,
+);
+
+const KineticScript winterSubzeroScript = KineticScript(
+  id: 'winter_subzero',
+  title: 'WINTER',
+  command: 'Heels. Vent. Hold.',
+  description: 'Floorboard press plus cabin heat transfer',
+  instructions:
+      'Heels press into the floorboards. Hands on the defroster vent. '
+      'Stay in the cabin. Do not step into open cold.',
+  audioAsset: '',
+  hapticPattern: KineticHapticPattern.continuousPush,
+);
+
+const KineticScript summerHeatwaveScript = KineticScript(
+  id: 'summer_heatwave',
+  title: 'HEATWAVE',
+  command: 'Wrist. Exhale. Hold.',
+  description: 'Cool metal on the wrists plus pursed-lip dump',
+  instructions:
+      'Press a cold metal or condensation surface to the inner wrists. '
+      'Slow pursed-lip exhale through the teeth. Stay in shade or airflow.',
+  audioAsset: '',
+  hapticPattern: KineticHapticPattern.rapidShake,
+);
+
+const KineticScript stallResetScript = KineticScript(
+  id: 'stall_reset',
+  title: 'STALL',
+  command: 'Palms. Heels. Still.',
+  description: 'Silent isometric with zero outward motion',
+  instructions:
+      'Palms press together at the sternum. Heels press the floor. '
+      'No sound. No visible movement.',
+  audioAsset: '',
+  hapticPattern: KineticHapticPattern.continuousSqueeze,
+);
+
+const KineticScript headphonesDarkScript = KineticScript(
+  id: 'headphones_dark',
+  title: 'HEADPHONES',
+  command: 'Cover. Cut. Hold.',
+  description: 'Audio and visual cut using the engine bed',
+  instructions:
+      'Eyes covered. Engine thrum only. Cut incoming voice and light.',
+  audioAsset: '',
+  hapticPattern: KineticHapticPattern.continuousPush,
+);
+
+const KineticScript sinkWashScript = KineticScript(
+  id: 'sink_wash',
+  title: 'SINK',
+  command: 'Wrist. Neck. Stop.',
+  description: 'Cold-water thermal dump at a restroom sink',
+  instructions:
+      'Cold water on the inner wrists, then the back of the neck. '
+      'Thirty seconds. Stop.',
+  audioAsset: '',
+  hapticPattern: KineticHapticPattern.rapidShake,
+);
+
+const List<KineticScript> kineticFieldDeck = [
+  hotCarScript,
+  winterSubzeroScript,
+  summerHeatwaveScript,
+  stallResetScript,
+  headphonesDarkScript,
+  sinkWashScript,
+];
+
+/// Menu instruments plus field protocols. OVERRIDE draws from this deck.
+/// Temporary landing is the win. SWAP if the current instrument does not.
+List<KineticScript> get kineticOptionDeck => <KineticScript>[
+      ...kineticScriptCards,
+      ...kineticFieldDeck,
+    ];
+
+KineticScript? kineticScriptById(String id) {
+  for (final script in kineticOptionDeck) {
+    if (script.id == id) return script;
+  }
+  return null;
+}
+
+/// Next instrument for OVERRIDE / SWAP. Never repeats [previousId] when
+/// the deck has more than one entry.
+String pickKineticOverride({
+  String? previousId,
+  int Function(int max)? roll,
+}) {
+  final ids = kineticOptionDeck.map((s) => s.id).toList(growable: false);
+  final next = roll ?? Random().nextInt;
+  if (ids.isEmpty) return wallPushScript.id;
+  var pick = ids[next(ids.length)];
+  if (previousId == null || ids.length == 1) return pick;
+  var guard = 0;
+  while (pick == previousId && guard < 12) {
+    pick = ids[next(ids.length)];
+    guard += 1;
+  }
+  if (pick == previousId) {
+    pick = ids.firstWhere((id) => id != previousId);
+  }
+  return pick;
+}
+
 /// Canonical Aegis-log tool name. Protocol maps to THE KINETIC.
 const String kineticLedgerTool = 'Kinetic';
 
@@ -101,6 +219,18 @@ String kineticInstrumentLabel(String exerciseKey) {
       return 'ISOMETRIC';
     case 'pulse':
       return 'THE PULSE';
+    case 'hot_car':
+      return 'HOT CAR';
+    case 'winter_subzero':
+      return 'WINTER';
+    case 'summer_heatwave':
+      return 'HEATWAVE';
+    case 'stall_reset':
+      return 'STALL';
+    case 'headphones_dark':
+      return 'HEADPHONES';
+    case 'sink_wash':
+      return 'SINK';
     default:
       return exerciseKey.replaceAll('_', ' ').toUpperCase();
   }
@@ -116,6 +246,12 @@ bool isKineticProtocolTool(String toolName) {
       lower.contains('the pulse') ||
       lower.contains('somatic_shaking') ||
       lower.contains('wall_push') ||
+      lower.contains('hot car') ||
+      lower.contains('heatwave') ||
+      lower.contains('stall') ||
+      lower.contains('headphones') ||
+      lower.contains('sink') ||
+      lower.contains('winter') ||
       lower == 'pulse';
 }
 

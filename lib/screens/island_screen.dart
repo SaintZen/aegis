@@ -69,6 +69,8 @@ class _IslandScreenState extends State<IslandScreen>
   bool _sessionHalted = false;
   bool _kineticLogged = false;
   String? _activeExerciseKey;
+  int _kineticGeneration = 0;
+  DateTime? _tumblerTickAt;
   _PulsePhase _pulsePhase = _PulsePhase.none;
   bool _closingFlashOn = false;
   String _auditText = 'VISION CLEAR';
@@ -153,6 +155,7 @@ class _IslandScreenState extends State<IslandScreen>
     _stopPulseVisualPulse();
     if (!mounted) return;
     if (_isExecutingSequence) {
+      _kineticGeneration += 1;
       final key = _activeExerciseKey;
       setState(() {
         _isExecutingSequence = false;
@@ -313,26 +316,36 @@ class _IslandScreenState extends State<IslandScreen>
           ),
           if (_isExecutingSequence)
             Positioned.fill(
-              child: RawGestureDetector(
-                gestures: {
-                  LongPressGestureRecognizer:
-                      GestureRecognizerFactoryWithHandlers<
-                          LongPressGestureRecognizer>(
-                    () => LongPressGestureRecognizer(
-                      duration: const Duration(milliseconds: 800),
-                    ),
-                    (instance) {
-                      instance.onLongPress = _killSwitch;
+              child: Stack(
+                children: [
+                  RawGestureDetector(
+                    gestures: {
+                      LongPressGestureRecognizer:
+                          GestureRecognizerFactoryWithHandlers<
+                              LongPressGestureRecognizer>(
+                        () => LongPressGestureRecognizer(
+                          duration: const Duration(milliseconds: 800),
+                        ),
+                        (instance) {
+                          instance.onLongPress = _killSwitch;
+                        },
+                      ),
                     },
+                    behavior: HitTestBehavior.opaque,
+                    child: Container(
+                      color: _kineticOverlayColor(),
+                      child: Center(
+                        child: _buildActiveExerciseView(),
+                      ),
+                    ),
                   ),
-                },
-                behavior: HitTestBehavior.opaque,
-                child: Container(
-                  color: _kineticOverlayColor(),
-                  child: Center(
-                    child: _buildActiveExerciseView(),
+                  Positioned(
+                    left: 20,
+                    right: 20,
+                    bottom: 20,
+                    child: SafeArea(child: _buildSwapAction()),
                   ),
-                ),
+                ],
               ),
             ),
           if (_isLandscape && _mode == _IslandMode.vista)
@@ -618,9 +631,22 @@ class _IslandScreenState extends State<IslandScreen>
     Navigator.pop(context);
   }
 
+  bool _sequenceAlive(int gen) {
+    return mounted && !_sessionHalted && gen == _kineticGeneration;
+  }
+
+  Future<void> _haltKineticMotion() async {
+    _stopShakeStaccato();
+    _stopIsometricRamp();
+    _stopPulseTapLoop();
+    _stopPulseVisualPulse();
+    await KineticVoiceEngine.emergencyStop();
+  }
+
   Future<void> playKineticSequence(String exerciseKey) async {
-    final script = kineticScripts[exerciseKey];
-    if (script == null) return;
+    if (kineticScriptById(exerciseKey) == null) return;
+    final clips = kineticScripts[exerciseKey];
+    final gen = ++_kineticGeneration;
 
     setState(() {
       _isExecutingSequence = true;
@@ -628,7 +654,11 @@ class _IslandScreenState extends State<IslandScreen>
       _kineticView = _KineticView.active;
       _activeExerciseKey = exerciseKey;
       _kineticLogged = false;
+      _pulsePhase = _PulsePhase.none;
     });
+
+    await _haltKineticMotion();
+    if (!mounted || gen != _kineticGeneration) return;
 
     await _vistaAudio.setVolume(0.0);
     if (exerciseKey == 'pulse') {
@@ -639,60 +669,47 @@ class _IslandScreenState extends State<IslandScreen>
       await KineticVoiceEngine.startPulseBaseline(_pulseBaselineIntensity);
       _startPulseTapLoop();
     }
+    if (exerciseKey == 'headphones_dark') {
+      await KineticVoiceEngine.startEngineThrum();
+    }
 
     try {
       // Primer orients. The three reps are the instrument — one pass
       // does not break the loop.
       await KineticVoiceEngine.playPrimer(exerciseKey);
-      if (!mounted || _sessionHalted) return;
+      if (!_sequenceAlive(gen)) return;
 
       for (int i = 1; i <= kineticRepCount; i++) {
         await Future.delayed(const Duration(seconds: 2));
-        if (!mounted || _sessionHalted) return;
+        if (!_sequenceAlive(gen)) return;
         setState(() => _currentRep = i);
-        if (exerciseKey != 'pulse') {
-          _setPulsePhase(_PulsePhase.actionPulse);
-          if (exerciseKey == 'muscle_clench') {
-            _startPulseVisualPulse(const Duration(milliseconds: 1600));
-            unawaited(_startIsometricRamp(const Duration(seconds: 4)));
-          } else {
-            _startPulseVisualPulse(const Duration(milliseconds: 900));
-          }
-          if (exerciseKey == 'somatic_shaking' ||
-              exerciseKey == 'tense_release') {
-            _startShakeStaccato();
-          }
-        }
+        _startProtocolHaptics(exerciseKey);
         await _cueKineticRep(exerciseKey, i);
-        if (!mounted || _sessionHalted) return;
+        if (!_sequenceAlive(gen)) return;
         await KineticVoiceEngine.playRep(exerciseKey);
-        if (exerciseKey != 'pulse') {
-          _stopPulseVisualPulse();
-          _setPulsePhase(_PulsePhase.none);
-          if (exerciseKey == 'muscle_clench') {
-            _triggerIsometricRelease();
-          }
-          if (exerciseKey == 'somatic_shaking' ||
-              exerciseKey == 'tense_release') {
-            _stopShakeStaccato();
-          }
-        }
+        _stopProtocolHaptics(exerciseKey);
       }
 
       await Future.delayed(const Duration(seconds: 2));
-      if (!mounted || _sessionHalted) return;
+      if (!_sequenceAlive(gen)) return;
       if (exerciseKey == 'pulse') {
         await _runClosingLoop();
       }
-      try {
-        await _playMissionClip(script[4]);
-      } catch (e) {
-        debugPrint('Kinetic exit clip failed: $e');
+      if (clips != null && clips.length > 4) {
+        try {
+          await _playMissionClip(clips[4]);
+        } catch (e) {
+          debugPrint('Kinetic exit clip failed: $e');
+        }
       }
-      await _logKineticUse(exerciseKey, 'Acknowledged');
+      if (_sequenceAlive(gen)) {
+        await _logKineticUse(exerciseKey, 'Acknowledged');
+      }
     } finally {
+      if (gen != _kineticGeneration) return;
       if (exerciseKey == 'pulse') {
         await KineticVoiceEngine.stopPulseThrum();
+        if (gen != _kineticGeneration) return;
         _setPulsePhase(_PulsePhase.none);
         _stopPulseVisualPulse();
         _stopPulseTapLoop();
@@ -705,8 +722,13 @@ class _IslandScreenState extends State<IslandScreen>
         _stopIsometricRamp();
         await KineticVoiceEngine.stopPulseThrum();
       }
+      if (exerciseKey == 'headphones_dark') {
+        await KineticVoiceEngine.stopEngineThrum();
+      }
+      _stopShakeStaccato();
+      _stopIsometricRamp();
       await _vistaAudio.setVolume(0.0);
-      if (mounted && !_sessionHalted) {
+      if (_sequenceAlive(gen)) {
         setState(() {
           _isExecutingSequence = false;
           _currentRep = 0;
@@ -716,6 +738,63 @@ class _IslandScreenState extends State<IslandScreen>
         });
       }
     }
+  }
+
+  void _startProtocolHaptics(String exerciseKey) {
+    if (exerciseKey == 'pulse') return;
+    final pattern = kineticScriptById(exerciseKey)?.hapticPattern;
+    _setPulsePhase(_PulsePhase.actionPulse);
+    switch (pattern) {
+      case KineticHapticPattern.continuousSqueeze:
+        _startPulseVisualPulse(const Duration(milliseconds: 1600));
+        unawaited(_startIsometricRamp(const Duration(seconds: 4)));
+        break;
+      case KineticHapticPattern.rapidShake:
+        _startPulseVisualPulse(const Duration(milliseconds: 900));
+        _startShakeStaccato(
+          microClick: exerciseKey != 'somatic_shaking' &&
+              exerciseKey != 'tense_release',
+        );
+        break;
+      case KineticHapticPattern.continuousPush:
+      default:
+        _startPulseVisualPulse(const Duration(milliseconds: 900));
+        break;
+    }
+  }
+
+  void _stopProtocolHaptics(String exerciseKey) {
+    if (exerciseKey == 'pulse') return;
+    _stopPulseVisualPulse();
+    _setPulsePhase(_PulsePhase.none);
+    final pattern = kineticScriptById(exerciseKey)?.hapticPattern;
+    if (pattern == KineticHapticPattern.continuousSqueeze) {
+      _triggerIsometricRelease();
+    }
+    if (pattern == KineticHapticPattern.rapidShake) {
+      _stopShakeStaccato();
+    }
+  }
+
+  Future<void> _launchOverride() async {
+    final next = pickKineticOverride(previousId: _activeExerciseKey);
+    HapticFeedback.heavyImpact();
+    await playKineticSequence(next);
+  }
+
+  void _onTumblerDrag(DragUpdateDetails details) {
+    final now = DateTime.now();
+    final last = _tumblerTickAt;
+    if (last != null && now.difference(last).inMilliseconds < 80) {
+      return;
+    }
+    _tumblerTickAt = now;
+    HapticFeedback.selectionClick();
+  }
+
+  void _onTumblerEnd(DragEndDetails details) {
+    HapticFeedback.heavyImpact();
+    unawaited(_launchOverride());
   }
 
   String _vistaAudioPathForIndex(int index) {
@@ -749,9 +828,14 @@ class _IslandScreenState extends State<IslandScreen>
             _buildKineticSubViewRow(),
             const SizedBox(height: 16),
             const Text(
-              'Move with the rhythm. Feel the anchor in your body.',
+              'OPTION DECK. Draw. SWAP if it does not land.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.white70, fontSize: 16),
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 14,
+                fontFamily: 'RobotoMono',
+                letterSpacing: 0.6,
+              ),
             ),
             const SizedBox(height: 24),
             Expanded(
@@ -844,9 +928,13 @@ class _IslandScreenState extends State<IslandScreen>
           ),
           const SizedBox(height: 8),
           const Text(
-            'The Active surface launches the four kinetic instruments.',
+            'OVERRIDE fires a random instrument. SWAP rerolls.',
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.white54, fontSize: 14),
+            style: TextStyle(
+              color: Colors.white54,
+              fontSize: 14,
+              fontFamily: 'RobotoMono',
+            ),
           ),
           const SizedBox(height: 20),
           _buildKineticMenu(),
@@ -1084,10 +1172,15 @@ class _IslandScreenState extends State<IslandScreen>
     await Future.delayed(marker.hold);
     _stopPulseVisualPulse();
     if (_activeExerciseKey == 'somatic_shaking' ||
-        _activeExerciseKey == 'tense_release') {
+        _activeExerciseKey == 'tense_release' ||
+        kineticScriptById(_activeExerciseKey ?? '')?.hapticPattern ==
+            KineticHapticPattern.rapidShake) {
       await KineticVoiceEngine.stopPulseThrum();
       if (_pulsePhase == _PulsePhase.actionPulse) {
-        _startShakeStaccato();
+        _startShakeStaccato(
+          microClick: _activeExerciseKey != 'somatic_shaking' &&
+              _activeExerciseKey != 'tense_release',
+        );
       }
     }
     if (_activeExerciseKey == 'muscle_clench') {
@@ -1137,11 +1230,15 @@ class _IslandScreenState extends State<IslandScreen>
     }
   }
 
-  void _startShakeStaccato() {
+  void _startShakeStaccato({bool microClick = false}) {
     _shakeHapticTimer?.cancel();
     _shakeHapticTimer =
         Timer.periodic(const Duration(milliseconds: 150), (_) {
-      HapticFeedback.mediumImpact();
+      if (microClick) {
+        HapticFeedback.selectionClick();
+      } else {
+        HapticFeedback.mediumImpact();
+      }
     });
   }
 
@@ -1184,6 +1281,18 @@ class _IslandScreenState extends State<IslandScreen>
         return const ['BREATHE', 'VISION', 'STATUS: GREEN'];
       case 'pulse':
         return const ['FEEL FEET', 'VISION', 'HOLD'];
+      case 'hot_car':
+        return const ['WHEEL', 'WRIST', 'RELEASE'];
+      case 'winter_subzero':
+        return const ['HEELS', 'VENT', 'HOLD'];
+      case 'summer_heatwave':
+        return const ['WRIST', 'EXHALE', 'HOLD'];
+      case 'stall_reset':
+        return const ['PALMS', 'HEELS', 'STILL'];
+      case 'headphones_dark':
+        return const ['COVER', 'CUT', 'HOLD'];
+      case 'sink_wash':
+        return const ['WRIST', 'NECK', 'STOP'];
       default:
         return const ['HOLD', 'HOLD', 'HOLD'];
     }
@@ -1191,6 +1300,7 @@ class _IslandScreenState extends State<IslandScreen>
 
   Future<void> _killSwitch() async {
     if (!_isExecutingSequence) return;
+    _kineticGeneration += 1;
     final key = _activeExerciseKey;
     _stopShakeStaccato();
     _stopIsometricRamp();
@@ -1341,14 +1451,165 @@ class _IslandScreenState extends State<IslandScreen>
       ),
     ];
 
-    return GridView.count(
-      crossAxisCount: 2,
-      crossAxisSpacing: 16,
-      mainAxisSpacing: 16,
-      childAspectRatio: 0.82,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      children: cards.map((card) => _buildKineticCard(card)).toList(),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildOverrideControl(),
+        const SizedBox(height: 16),
+        GridView.count(
+          crossAxisCount: 2,
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+          childAspectRatio: 0.82,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          children: cards.map((card) => _buildKineticCard(card)).toList(),
+        ),
+        const SizedBox(height: 20),
+        const Text(
+          'FIELD',
+          textAlign: TextAlign.left,
+          style: TextStyle(
+            color: Colors.white70,
+            fontSize: 11,
+            letterSpacing: 1.6,
+            fontWeight: FontWeight.w600,
+            fontFamily: 'RobotoMono',
+          ),
+        ),
+        const SizedBox(height: 8),
+        ...kineticFieldDeck.map(_buildFieldRow),
+      ],
+    );
+  }
+
+  Widget _buildOverrideControl() {
+    return GestureDetector(
+      key: const Key('kinetic_override'),
+      onTap: () => unawaited(_launchOverride()),
+      onVerticalDragUpdate: _onTumblerDrag,
+      onVerticalDragEnd: _onTumblerEnd,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFF5F1F),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.white, width: 2),
+        ),
+        child: const Text(
+          '[ OVERRIDE ]',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 2.4,
+            fontFamily: 'RobotoMono',
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSwapAction() {
+    final key = _activeExerciseKey;
+    final script = key == null ? null : kineticScriptById(key);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (script != null) ...[
+          Text(
+            script.title.toUpperCase(),
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: Colors.white70,
+              fontSize: 12,
+              letterSpacing: 1.4,
+              fontFamily: 'RobotoMono',
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            script.command,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: Colors.white54,
+              fontSize: 12,
+              fontFamily: 'RobotoMono',
+            ),
+          ),
+          const SizedBox(height: 10),
+        ],
+        GestureDetector(
+          key: const Key('kinetic_swap'),
+          onTap: () => unawaited(_launchOverride()),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.55),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.white38),
+            ),
+            child: const Text(
+              'SWAP',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 13,
+                letterSpacing: 2.0,
+                fontWeight: FontWeight.w600,
+                fontFamily: 'RobotoMono',
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFieldRow(KineticScript script) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: InkWell(
+        key: Key('kinetic_field_${script.id}'),
+        onTap: () => unawaited(playKineticSequence(script.id)),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.55),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.white24),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                script.title,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 13,
+                  letterSpacing: 1.2,
+                  fontWeight: FontWeight.w700,
+                  fontFamily: 'RobotoMono',
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                script.command,
+                style: const TextStyle(
+                  color: Colors.white54,
+                  fontSize: 11,
+                  fontFamily: 'RobotoMono',
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
