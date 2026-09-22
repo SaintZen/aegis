@@ -9,6 +9,7 @@ const double kAegisHudReserve = 42.0;
 PreferredSizeWidget aegisHudAppBar({
   required Widget title,
   List<Widget>? actions,
+  Widget? leading,
   Color backgroundColor = const Color(0xFF0A0A0A),
   bool centerTitle = true,
 }) {
@@ -22,7 +23,20 @@ PreferredSizeWidget aegisHudAppBar({
         child: AppBar(
           backgroundColor: backgroundColor,
           elevation: 0,
+          toolbarHeight: kToolbarHeight,
+          // Theme sets toolbarHeight 0 and title color transparent so the
+          // global HUD can own the top band. Force a real toolbar here.
+          foregroundColor: Colors.white,
+          iconTheme: const IconThemeData(color: Colors.white),
+          titleTextStyle: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w700,
+            fontSize: 18,
+            letterSpacing: 2,
+            fontFamily: 'RobotoMono',
+          ),
           centerTitle: centerTitle,
+          leading: leading,
           title: title,
           actions: actions,
         ),
