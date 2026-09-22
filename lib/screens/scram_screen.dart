@@ -10,7 +10,8 @@ import 'package:anxiety_anchor/services/kinetic_voice_engine.dart';
 ///
 /// Replaces Kill Switch. Not the Void. A 1.25s hold on the Monolith
 /// opens a ninety-second blank field so the operator's world can reset.
-/// The field is empty. No copy. No skip. Snap, then return to Bridge.
+/// The field is empty. System back does not skip it. EXIT aborts
+/// the field if the operator must leave.
 class ScramScreen extends StatefulWidget {
   const ScramScreen({
     super.key,
@@ -23,6 +24,8 @@ class ScramScreen extends StatefulWidget {
   static const Duration defaultBlankDuration = Duration(seconds: 90);
 
   static const String ledgerType = 'SCRAM';
+
+  static const String exitLabel = 'EXIT';
 
   final Duration blankDuration;
   final Future<void> Function({
@@ -48,12 +51,19 @@ class _ScramScreenState extends State<ScramScreen> {
     _blankTimer = Timer(widget.blankDuration, _finish);
   }
 
-  Future<void> _logActivation() async {
+  Future<void> _log(String content) async {
     final log = widget.logLedgerEntry ?? AegisLogService.logLedgerEntry;
     await log(
       type: ScramScreen.ledgerType,
-      content: 'BLANK FIELD',
+      content: content,
     );
+  }
+
+  Future<void> _logActivation() => _log('BLANK FIELD');
+
+  void _exit() {
+    unawaited(_log('EXIT'));
+    _finish();
   }
 
   void _finish() {
@@ -63,7 +73,7 @@ class _ScramScreenState extends State<ScramScreen> {
     HapticFeedback.heavyImpact();
     if (!mounted) return;
     // pop() completes the field. maybePop honors PopScope.canPop,
-    // which stays false until a rebuild — the operator cannot skip.
+    // which stays false — system back cannot skip. EXIT calls pop().
     final navigator = Navigator.of(context);
     if (navigator.canPop()) {
       navigator.pop();
@@ -81,9 +91,34 @@ class _ScramScreenState extends State<ScramScreen> {
   Widget build(BuildContext context) {
     return PopScope(
       canPop: _finished,
-      child: const Scaffold(
-        backgroundColor: Color(0xFF000000),
-        body: SizedBox.expand(),
+      child: Scaffold(
+        backgroundColor: const Color(0xFF000000),
+        body: SafeArea(
+          child: Align(
+            alignment: Alignment.bottomRight,
+            child: TextButton(
+              key: const Key('scram_exit'),
+              onPressed: _exit,
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white.withValues(alpha: 0.38),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                minimumSize: const Size(72, 44),
+              ),
+              child: const Text(
+                ScramScreen.exitLabel,
+                style: TextStyle(
+                  fontFamily: 'RobotoMono',
+                  letterSpacing: 1.6,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 12,
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

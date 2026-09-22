@@ -72,6 +72,7 @@ void main() {
     expect(scram.body.toLowerCase(), contains('monolith'));
     expect(scram.body.toLowerCase(), contains('blank field'));
     expect(scram.body.toLowerCase(), contains('not the void'));
+    expect(scram.body, contains('EXIT'));
     expect(scram.body.toLowerCase().contains('drop into'), isFalse);
     final blob = InstrumentTourCopy.allOperatorFacing.join('\n').toLowerCase();
     expect(blob.contains('kill switch'), isFalse);

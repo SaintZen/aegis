@@ -82,6 +82,7 @@ class InstrumentTourCopy {
           'Priority 0. A ninety-second blank field. '
           '1.25-second HOLD on the Monolith. Universal interrupt. '
           'The operator\'s world is reset. Not the Void. '
+          'EXIT aborts the field. '
           'Named for the reactor emergency-shutdown: decisive and protective, '
           'never violent.',
     ),

@@ -31,6 +31,7 @@ Aegis is an Industrial Somatic Stabilization Instrument.
 - **Trigger:** 1.25s Long Press on Monolith Anchor.
 - **Action:** Universal interrupt. Ninety-second blank field. The operator's world is reset.
 - **Sequence:** Lockout -> Blank field (90s) -> Snap -> Return to Bridge.
+- **EXIT:** Aborts the field. System back does not. The ninety-second hold remains the default path.
 - **Not the Void.** The Void remains the subtractive purge engine. SCRAM replaced the former Kill Switch title; the destination is a blank field, not a Void drop.
 
 ## 5. GLOSSARY (TECHNICAL DEFINITIONS)
