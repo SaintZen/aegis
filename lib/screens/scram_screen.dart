@@ -98,36 +98,42 @@ class _ScramScreenState extends State<ScramScreen> {
       child: Scaffold(
         backgroundColor: const Color(0xFF000000),
         body: SafeArea(
-          child: Align(
-            alignment: Alignment.bottomRight,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
-              child: TextButton(
-                key: const Key('scram_exit'),
-                onPressed: _exit,
-                style: TextButton.styleFrom(
-                  foregroundColor: ScramScreen.exitInk,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 14,
+          child: Stack(
+            children: [
+              Positioned(
+                right: 16,
+                bottom: 20,
+                child: TextButton(
+                  key: const Key('scram_exit'),
+                  onPressed: _exit,
+                  style: TextButton.styleFrom(
+                    foregroundColor: ScramScreen.exitInk,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 14,
+                    ),
+                    minimumSize: const Size(88, 52),
+                    tapTargetSize: MaterialTapTargetSize.padded,
+                    side: const BorderSide(
+                      color: ScramScreen.exitInk,
+                      width: 1,
+                    ),
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(2)),
+                    ),
                   ),
-                  minimumSize: const Size(88, 52),
-                  side: const BorderSide(color: ScramScreen.exitInk, width: 1),
-                  shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(2)),
-                  ),
-                ),
-                child: const Text(
-                  ScramScreen.exitLabel,
-                  style: TextStyle(
-                    fontFamily: 'RobotoMono',
-                    letterSpacing: 1.8,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 14,
+                  child: const Text(
+                    ScramScreen.exitLabel,
+                    style: TextStyle(
+                      fontFamily: 'RobotoMono',
+                      letterSpacing: 1.8,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                    ),
                   ),
                 ),
               ),
-            ),
+            ],
           ),
         ),
       ),

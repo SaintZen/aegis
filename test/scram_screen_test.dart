@@ -13,6 +13,10 @@ void main() {
   });
 
   testWidgets('SCRAM is a blank field, not the Void', (tester) async {
+    tester.view.physicalSize = const Size(390, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
     await tester.binding.setSurfaceSize(const Size(390, 800));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
@@ -89,6 +93,10 @@ void main() {
   });
 
   testWidgets('EXIT aborts the blank field before the timer', (tester) async {
+    tester.view.physicalSize = const Size(390, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
     await tester.binding.setSurfaceSize(const Size(390, 800));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
@@ -126,12 +134,17 @@ void main() {
 
     await tester.tap(find.text('ARM'));
     await tester.pump();
-    await tester.pump();
+    // Finish the route slide without advancing the 90s blank timer.
+    await tester.pump(const Duration(milliseconds: 400));
 
     expect(find.byType(ScramScreen), findsOneWidget);
     final exit = find.byKey(const Key('scram_exit'));
     expect(exit, findsOneWidget);
-    await tester.ensureVisible(exit);
+    final box = tester.getRect(exit);
+    expect(box.left, greaterThanOrEqualTo(0));
+    expect(box.top, greaterThanOrEqualTo(0));
+    expect(box.right, lessThanOrEqualTo(390));
+    expect(box.bottom, lessThanOrEqualTo(800));
     await tester.tap(exit);
     await tester.pumpAndSettle();
 
