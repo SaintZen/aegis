@@ -51,7 +51,28 @@ class KineticVoiceEngine {
   static const Duration _silentRepHold = Duration(milliseconds: 4500);
   static const Duration _silentPrimerHold = Duration(milliseconds: 2000);
 
+  /// Guided voice for the four Menu instruments. The committed beds are
+  /// `kinetic_prompts/*.mp3`. Primer/rep `.wav` files were never shipped,
+  /// so the old path went silent.
+  static String? primerAssetFor(String exerciseId) {
+    return _exerciseTrackAudio[exerciseId];
+  }
+
   static Future<void> playPrimer(String exerciseId) async {
+    final track = primerAssetFor(exerciseId);
+    if (track != null) {
+      try {
+        await _voicePlayer.setVolume(1.0);
+        await _voicePlayer.setAsset(track);
+        await _voicePlayer.play();
+        await _voicePlayer.processingStateStream.firstWhere(
+          (state) => state == ProcessingState.completed,
+        );
+        return;
+      } catch (e) {
+        debugPrint('Kinetic primer track failed: $e');
+      }
+    }
     final spec = _exerciseAudio[exerciseId];
     if (spec != null) {
       final assetPath =

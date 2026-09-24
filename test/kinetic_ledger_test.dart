@@ -1,8 +1,28 @@
 import 'package:anxiety_anchor/scripts/kinetic_scripts.dart';
+import 'package:anxiety_anchor/services/kinetic_voice_engine.dart';
 import 'package:anxiety_anchor/services/pdf_generator_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('four Menu instruments have a guided voice track', () {
+    expect(
+      KineticVoiceEngine.primerAssetFor('wall_push'),
+      'assets/audio/kinetic_prompts/wall_push.mp3',
+    );
+    expect(
+      KineticVoiceEngine.primerAssetFor('somatic_shaking'),
+      'assets/audio/kinetic_prompts/the_shake.mp3',
+    );
+    expect(
+      KineticVoiceEngine.primerAssetFor('muscle_clench'),
+      'assets/audio/kinetic_prompts/isometric.mp3',
+    );
+    expect(
+      KineticVoiceEngine.primerAssetFor('pulse'),
+      'assets/audio/kinetic_prompts/the_pulse.mp3',
+    );
+  });
+
   test('Kinetic protocol is three somatic reps', () {
     expect(kineticRepCount, 3);
     expect(kineticScripts.length, 4);

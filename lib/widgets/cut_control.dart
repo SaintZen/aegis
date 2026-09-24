@@ -22,7 +22,10 @@ Future<void> fireCut(
   );
 }
 
-/// High-contrast loop cut. First use and continuous use.
+/// Operator label. SHIFT changes sensory domain. SWAP rerolls one deck.
+const String cutControlLabel = '[ SHIFT ]';
+
+/// High-contrast domain shift. First use and continuous use.
 class CutControl extends StatelessWidget {
   const CutControl({
     super.key,
@@ -50,7 +53,7 @@ class CutControl extends StatelessWidget {
           border: Border.all(color: Colors.white, width: compact ? 1 : 2),
         ),
         child: Text(
-          '[ CUT ]',
+          cutControlLabel,
           textAlign: TextAlign.center,
           style: TextStyle(
             color: Colors.white,

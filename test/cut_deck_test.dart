@@ -53,7 +53,7 @@ void main() {
     await tester.pump();
 
     expect(find.byKey(const Key('aegis_cut')), findsOneWidget);
-    expect(find.text('[ CUT ]'), findsOneWidget);
+    expect(find.text(cutControlLabel), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('aegis_cut')));
     await tester.pumpAndSettle();
