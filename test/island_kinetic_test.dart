@@ -57,6 +57,26 @@ void main() {
     expect(find.text('STALL'), findsOneWidget);
     expect(find.text('HEADPHONES'), findsOneWidget);
     expect(find.text('SINK'), findsOneWidget);
+    expect(
+      find.text('Vehicle stopped. Read the card. Phone stays down.'),
+      findsOneWidget,
+    );
+
+    final headphones = find.byKey(const Key('kinetic_field_headphones_dark'));
+    await tester.ensureVisible(headphones);
+    await tester.tap(headphones);
+    await tester.pump();
+    expect(find.textContaining('Cover the eyes'), findsOneWidget);
+    expect(find.textContaining('Cut incoming voice'), findsOneWidget);
+    expect(find.byKey(const Key('kinetic_swap')), findsNothing);
+
+    final hotCar = find.byKey(const Key('kinetic_field_hot_car'));
+    await tester.ensureVisible(hotCar);
+    await tester.tap(hotCar);
+    await tester.pump();
+    expect(find.textContaining('Hands off the wheel'), findsOneWidget);
+    expect(find.textContaining('clench the wheel'), findsNothing);
+    expect(find.textContaining('Cover the eyes'), findsNothing);
     expect(find.text('LOW SIG'), findsOneWidget);
     expect(find.text('POOR MAN'), findsNothing);
     expect(find.text('No instrument. Bus or meeting. Phone stays down.'), findsOneWidget);

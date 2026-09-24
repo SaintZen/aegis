@@ -86,11 +86,12 @@ const List<KineticScript> kineticScriptCards = [
 const KineticScript hotCarScript = KineticScript(
   id: 'hot_car',
   title: 'HOT CAR',
-  command: 'Vent. Clench. Release.',
-  description: 'Cabin heat dump plus wheel isometric',
+  command: 'Vent. Seat. Release.',
+  description: 'Parked cabin heat dump. Hands off the wheel.',
   instructions:
-      'Aim the A/C at the inner wrists and the side of the neck. '
-      'Both hands clench the wheel, hold, release. Repeat.',
+      'Vehicle stopped. Hands off the wheel. Phone down after this card. '
+      'Aim cabin air at the inner wrists, then the side of the neck. '
+      'Grip the seat edge or the thighs. Hold. Release. Three holds.',
   audioAsset: '',
   hapticPattern: KineticHapticPattern.continuousSqueeze,
 );
@@ -99,10 +100,11 @@ const KineticScript winterSubzeroScript = KineticScript(
   id: 'winter_subzero',
   title: 'WINTER',
   command: 'Heels. Vent. Hold.',
-  description: 'Floorboard press plus cabin heat transfer',
+  description: 'Parked cabin heat transfer. Hands off the wheel.',
   instructions:
-      'Heels press into the floorboards. Hands on the defroster vent. '
-      'Stay in the cabin. Do not step into open cold.',
+      'Vehicle stopped. Stay in the cabin. Do not step into open cold. '
+      'Heels press the floor. Hands on the defroster vent, not the wheel. '
+      'Hold. Release. Three holds. Phone down after this card.',
   audioAsset: '',
   hapticPattern: KineticHapticPattern.continuousPush,
 );
@@ -113,8 +115,10 @@ const KineticScript summerHeatwaveScript = KineticScript(
   command: 'Wrist. Exhale. Hold.',
   description: 'Cool metal on the wrists plus pursed-lip dump',
   instructions:
+      'Stay in shade or airflow. Phone down after this card. '
       'Press a cold metal or condensation surface to the inner wrists. '
-      'Slow pursed-lip exhale through the teeth. Stay in shade or airflow.',
+      'Do not press the neck arteries. Slow pursed-lip exhale through '
+      'the teeth. Hold. Repeat three times.',
   audioAsset: '',
   hapticPattern: KineticHapticPattern.rapidShake,
 );
@@ -125,8 +129,9 @@ const KineticScript stallResetScript = KineticScript(
   command: 'Palms. Heels. Still.',
   description: 'Silent isometric with zero outward motion',
   instructions:
-      'Palms press together at the sternum. Heels press the floor. '
-      'No sound. No visible movement.',
+      'Phone down after this card. Palms press together at the sternum. '
+      'Heels press the floor. No sound. No visible movement. '
+      'Hold. Release. Three holds.',
   audioAsset: '',
   hapticPattern: KineticHapticPattern.continuousSqueeze,
 );
@@ -135,9 +140,11 @@ const KineticScript headphonesDarkScript = KineticScript(
   id: 'headphones_dark',
   title: 'HEADPHONES',
   command: 'Cover. Cut. Hold.',
-  description: 'Audio and visual cut using the engine bed',
+  description: 'Cover the eyes. Cut incoming voice and light.',
   instructions:
-      'Eyes covered. Engine thrum only. Cut incoming voice and light.',
+      'Phone down after this card. Cover the eyes with one hand or the '
+      'headphone cup. Cut incoming voice and other audio. Light stays out. '
+      'Hold the cover. Do not scroll. Stay until the loop breaks.',
   audioAsset: '',
   hapticPattern: KineticHapticPattern.continuousPush,
 );
@@ -148,8 +155,9 @@ const KineticScript sinkWashScript = KineticScript(
   command: 'Wrist. Neck. Stop.',
   description: 'Cold-water thermal dump at a restroom sink',
   instructions:
-      'Cold water on the inner wrists, then the back of the neck. '
-      'Thirty seconds. Stop.',
+      'At a sink. Phone down after this card. '
+      'Cold water on the inner wrists first, then the back of the neck. '
+      'Thirty seconds. Stop. Do not hold the breath.',
   audioAsset: '',
   hapticPattern: KineticHapticPattern.rapidShake,
 );
@@ -243,16 +251,15 @@ const List<KineticScript> kineticStealthDeck = [
   thumbScript,
 ];
 
-/// Menu instruments plus field protocols. OVERRIDE draws from this deck.
-/// Temporary landing is the win. SWAP if the current instrument does not.
-/// LOW SIG cards stay out — they land with the phone down.
-List<KineticScript> get kineticOptionDeck => <KineticScript>[
-      ...kineticScriptCards,
-      ...kineticFieldDeck,
-    ];
+/// OVERRIDE deck. Menu instruments only.
+/// FIELD and LOW SIG are glance cards — they do not rumble.
+List<KineticScript> get kineticOptionDeck => kineticScriptCards;
 
 KineticScript? kineticScriptById(String id) {
-  for (final script in kineticOptionDeck) {
+  for (final script in kineticScriptCards) {
+    if (script.id == id) return script;
+  }
+  for (final script in kineticFieldDeck) {
     if (script.id == id) return script;
   }
   for (final script in kineticStealthDeck) {

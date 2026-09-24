@@ -74,6 +74,7 @@ class _IslandScreenState extends State<IslandScreen>
   bool _kineticLogged = false;
   String? _activeExerciseKey;
   String? _expandedStealthId;
+  String? _expandedFieldId;
   int _kineticGeneration = 0;
   DateTime? _tumblerTickAt;
   _PulsePhase _pulsePhase = _PulsePhase.none;
@@ -1314,7 +1315,7 @@ class _IslandScreenState extends State<IslandScreen>
       case 'pulse':
         return const ['FEEL FEET', 'VISION', 'HOLD'];
       case 'hot_car':
-        return const ['WHEEL', 'WRIST', 'RELEASE'];
+        return const ['SEAT', 'WRIST', 'RELEASE'];
       case 'winter_subzero':
         return const ['HEELS', 'VENT', 'HOLD'];
       case 'summer_heatwave':
@@ -1506,6 +1507,15 @@ class _IslandScreenState extends State<IslandScreen>
             fontSize: 11,
             letterSpacing: 1.6,
             fontWeight: FontWeight.w600,
+            fontFamily: 'RobotoMono',
+          ),
+        ),
+        const SizedBox(height: 4),
+        const Text(
+          'Vehicle stopped. Read the card. Phone stays down.',
+          style: TextStyle(
+            color: Colors.white38,
+            fontSize: 11,
             fontFamily: 'RobotoMono',
           ),
         ),
@@ -1715,18 +1725,23 @@ class _IslandScreenState extends State<IslandScreen>
   }
 
   Widget _buildFieldRow(KineticScript script) {
+    final expanded = _expandedFieldId == script.id;
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: InkWell(
         key: Key('kinetic_field_${script.id}'),
-        onTap: () => unawaited(playKineticSequence(script.id)),
+        onTap: () => setState(() {
+          _expandedFieldId = expanded ? null : script.id;
+        }),
         child: Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
             color: Colors.black.withOpacity(0.55),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.white24),
+            border: Border.all(
+              color: expanded ? Colors.white54 : Colors.white24,
+            ),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1750,6 +1765,18 @@ class _IslandScreenState extends State<IslandScreen>
                   fontFamily: 'RobotoMono',
                 ),
               ),
+              if (expanded) ...[
+                const SizedBox(height: 8),
+                Text(
+                  script.instructions,
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 12,
+                    height: 1.35,
+                    fontFamily: 'RobotoMono',
+                  ),
+                ),
+              ],
             ],
           ),
         ),

@@ -23,19 +23,24 @@ void main() {
   test('OVERRIDE never repeats the previous instrument', () {
     expect(kineticFieldDeck.length, 6);
     expect(kineticStealthDeck.length, 6);
-    expect(kineticOptionDeck.length, 10);
+    expect(kineticOptionDeck.length, 4);
     expect(kineticScripts.length, 4);
     expect(
       kineticOptionDeck.map((s) => s.id),
       isNot(contains('stealth_lobe')),
     );
+    expect(
+      kineticOptionDeck.map((s) => s.id),
+      isNot(contains('hot_car')),
+    );
 
     final locked = pickKineticOverride(
-      previousId: 'hot_car',
-      roll: (_) => kineticOptionDeck.indexWhere((s) => s.id == 'hot_car'),
+      previousId: 'wall_push',
+      roll: (_) => kineticOptionDeck.indexWhere((s) => s.id == 'wall_push'),
     );
-    expect(locked, isNot('hot_car'));
+    expect(locked, isNot('wall_push'));
     expect(kineticOptionDeck.map((s) => s.id), contains(locked));
+    expect(locked, isNot('hot_car'));
 
     expect(kineticInstrumentLabel('hot_car'), 'HOT CAR');
     expect(kineticInstrumentLabel('winter_subzero'), 'WINTER');
@@ -52,6 +57,12 @@ void main() {
     expect(kineticInstrumentLabel('stealth_jaw'), 'JAW');
     expect(isKineticStealthProtocol('stealth_lobe'), isTrue);
     expect(isKineticStealthProtocol('hot_car'), isFalse);
+    for (final script in kineticFieldDeck) {
+      expect(script.instructions.toLowerCase(), isNot(contains('clench the wheel')));
+      expect(script.instructions.split(RegExp(r'\s+')).length, greaterThan(12));
+    }
+    expect(hotCarScript.instructions, contains('Hands off the wheel'));
+    expect(headphonesDarkScript.instructions, contains('Cover the eyes'));
 
     final lowSig = pickKineticLowSig(
       previousId: 'stealth_lobe',
