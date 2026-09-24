@@ -830,6 +830,52 @@ class _IslandScreenState extends State<IslandScreen>
     setState(() => _expandedStealthId = next);
   }
 
+  /// FIELD glance stays on the card. The rumble is the instrument.
+  void _toggleFieldCard(KineticScript script) {
+    final closing = _expandedFieldId == script.id;
+    setState(() => _expandedFieldId = closing ? null : script.id);
+    if (closing) {
+      _kineticGeneration += 1;
+      unawaited(_haltFieldHaptics(script.id));
+      return;
+    }
+    unawaited(_runFieldHaptics(script.id));
+  }
+
+  Future<void> _runFieldHaptics(String exerciseKey) async {
+    final gen = ++_kineticGeneration;
+    _kineticLogged = false;
+    await _haltKineticMotion();
+    if (!_sequenceAlive(gen)) return;
+    if (exerciseKey == 'headphones_dark') {
+      await KineticVoiceEngine.startEngineThrum();
+    }
+    try {
+      for (var i = 1; i <= kineticRepCount; i++) {
+        if (!_sequenceAlive(gen)) return;
+        _startProtocolHaptics(exerciseKey);
+        await KineticVoiceEngine.playRep(exerciseKey);
+        _stopProtocolHaptics(exerciseKey);
+      }
+      if (_sequenceAlive(gen)) {
+        await _logKineticUse(exerciseKey, 'Acknowledged');
+      }
+    } finally {
+      if (gen == _kineticGeneration) {
+        await _haltFieldHaptics(exerciseKey);
+      }
+    }
+  }
+
+  Future<void> _haltFieldHaptics(String exerciseKey) async {
+    _stopProtocolHaptics(exerciseKey);
+    _stopShakeStaccato();
+    _stopIsometricRamp();
+    if (exerciseKey == 'headphones_dark') {
+      await KineticVoiceEngine.stopEngineThrum();
+    }
+  }
+
   String _vistaAudioPathForIndex(int index) {
     switch (index) {
       case 0:
@@ -1512,7 +1558,7 @@ class _IslandScreenState extends State<IslandScreen>
         ),
         const SizedBox(height: 4),
         const Text(
-          'Vehicle stopped. Read the card. Phone stays down.',
+          'Vehicle stopped. Read the card. Hands off the wheel.',
           style: TextStyle(
             color: Colors.white38,
             fontSize: 11,
@@ -1730,9 +1776,7 @@ class _IslandScreenState extends State<IslandScreen>
       padding: const EdgeInsets.only(bottom: 8),
       child: InkWell(
         key: Key('kinetic_field_${script.id}'),
-        onTap: () => setState(() {
-          _expandedFieldId = expanded ? null : script.id;
-        }),
+        onTap: () => _toggleFieldCard(script),
         child: Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),

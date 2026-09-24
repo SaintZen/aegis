@@ -58,7 +58,7 @@ void main() {
     expect(find.text('HEADPHONES'), findsOneWidget);
     expect(find.text('SINK'), findsOneWidget);
     expect(
-      find.text('Vehicle stopped. Read the card. Phone stays down.'),
+      find.text('Vehicle stopped. Read the card. Hands off the wheel.'),
       findsOneWidget,
     );
 
@@ -74,7 +74,7 @@ void main() {
     await tester.ensureVisible(hotCar);
     await tester.tap(hotCar);
     await tester.pump();
-    expect(find.textContaining('Hands off the wheel'), findsOneWidget);
+    expect(find.textContaining('Grip the seat edge'), findsOneWidget);
     expect(find.textContaining('clench the wheel'), findsNothing);
     expect(find.textContaining('Cover the eyes'), findsNothing);
     expect(find.text('LOW SIG'), findsOneWidget);
