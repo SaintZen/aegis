@@ -1558,7 +1558,7 @@ class _IslandScreenState extends State<IslandScreen>
         ),
         const SizedBox(height: 4),
         const Text(
-          'Vehicle stopped. Read the card. Hands off the wheel.',
+          'Phone on the thigh. Read the card. Hands off the wheel.',
           style: TextStyle(
             color: Colors.white38,
             fontSize: 11,

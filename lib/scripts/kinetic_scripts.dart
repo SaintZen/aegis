@@ -89,7 +89,7 @@ const KineticScript hotCarScript = KineticScript(
   command: 'Vent. Seat. Release.',
   description: 'Parked cabin heat dump. Hands off the wheel.',
   instructions:
-      'Vehicle stopped. Hands off the wheel. Phone down after this card. '
+      'Vehicle stopped. Hands off the wheel. Phone on the thigh. '
       'Aim cabin air at the inner wrists, then the side of the neck. '
       'Grip the seat edge or the thighs. Hold. Release. Three holds.',
   audioAsset: '',
@@ -104,7 +104,7 @@ const KineticScript winterSubzeroScript = KineticScript(
   instructions:
       'Vehicle stopped. Stay in the cabin. Do not step into open cold. '
       'Heels press the floor. Hands on the defroster vent, not the wheel. '
-      'Hold. Release. Three holds. Phone down after this card.',
+      'Hold. Release. Three holds. Phone on the thigh.',
   audioAsset: '',
   hapticPattern: KineticHapticPattern.continuousPush,
 );
@@ -115,7 +115,7 @@ const KineticScript summerHeatwaveScript = KineticScript(
   command: 'Wrist. Exhale. Hold.',
   description: 'Cool metal on the wrists plus pursed-lip dump',
   instructions:
-      'Stay in shade or airflow. Phone down after this card. '
+      'Stay in shade or airflow. Phone on the thigh. '
       'Press a cold metal or condensation surface to the inner wrists. '
       'Do not press the neck arteries. Slow pursed-lip exhale through '
       'the teeth. Hold. Repeat three times.',
@@ -129,7 +129,7 @@ const KineticScript stallResetScript = KineticScript(
   command: 'Palms. Heels. Still.',
   description: 'Silent isometric with zero outward motion',
   instructions:
-      'Phone down after this card. Palms press together at the sternum. '
+      'Phone on the thigh. Palms press together at the sternum. '
       'Heels press the floor. No sound. No visible movement. '
       'Hold. Release. Three holds.',
   audioAsset: '',
@@ -142,7 +142,7 @@ const KineticScript headphonesDarkScript = KineticScript(
   command: 'Cover. Cut. Hold.',
   description: 'Cover the eyes. Cut incoming voice and light.',
   instructions:
-      'Phone down after this card. Cover the eyes with one hand or the '
+      'Phone on the thigh. Cover the eyes with one hand or the '
       'headphone cup. Cut incoming voice and other audio. Light stays out. '
       'Hold the cover. Do not scroll. Stay until the loop breaks.',
   audioAsset: '',
@@ -155,7 +155,7 @@ const KineticScript sinkWashScript = KineticScript(
   command: 'Wrist. Neck. Stop.',
   description: 'Cold-water thermal dump at a restroom sink',
   instructions:
-      'At a sink. Phone down after this card. '
+      'At a sink. Phone on the thigh. '
       'Cold water on the inner wrists first, then the back of the neck. '
       'Thirty seconds. Stop. Do not hold the breath.',
   audioAsset: '',

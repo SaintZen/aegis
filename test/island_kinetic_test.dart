@@ -58,7 +58,7 @@ void main() {
     expect(find.text('HEADPHONES'), findsOneWidget);
     expect(find.text('SINK'), findsOneWidget);
     expect(
-      find.text('Vehicle stopped. Read the card. Hands off the wheel.'),
+      find.text('Phone on the thigh. Read the card. Hands off the wheel.'),
       findsOneWidget,
     );
 
