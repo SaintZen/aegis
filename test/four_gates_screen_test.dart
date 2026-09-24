@@ -1,6 +1,7 @@
 import 'package:anxiety_anchor/models/four_gates_run.dart';
 import 'package:anxiety_anchor/models/pending_retest.dart';
 import 'package:anxiety_anchor/screens/four_gates_screen.dart';
+import 'package:anxiety_anchor/theme/aegis_hud.dart';
 import 'package:anxiety_anchor/services/four_gates_vault.dart';
 import 'package:anxiety_anchor/services/telemetry.dart';
 import 'package:flutter/material.dart';
@@ -144,6 +145,34 @@ void main() {
 
     expect(find.textContaining('"had tools"'), findsWidgets);
     expect(find.textContaining('"did not choose"'), findsWidgets);
+  });
+
+  testWidgets('FOUR GATES title sits below the AEGIS HUD reserve',
+      (tester) async {
+    await tester.binding.setSurfaceSize(const Size(390, 1200));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(host(const FourGatesScreen()));
+    await tester.pumpAndSettle();
+
+    final bar = tester.widget<PreferredSize>(
+      find.byKey(const Key('aegis_hud_app_bar')),
+    );
+    expect(
+      bar.preferredSize.height,
+      kToolbarHeight + kAegisHudReserve,
+    );
+
+    final title = tester.getRect(find.text('FOUR GATES'));
+    expect(title.top, greaterThan(kAegisHudReserve));
+    expect(find.text('GATE 1 — CAPACITY'), findsOneWidget);
+    final gate = tester.getRect(find.text('GATE 1 — CAPACITY'));
+    expect(gate.top, greaterThan(title.bottom));
+  });
+
+  test('Four Gates ink floor is brighter than white70', () {
+    expect(kFourGatesInkSecondary.r, greaterThan(0.85));
+    expect(kFourGatesInkMuted.r, greaterThan(0.75));
   });
 
   testWidgets('NEXT button is disabled until a decision is made',

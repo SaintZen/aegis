@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'package:anxiety_anchor/services/calibration_service.dart';
+import 'package:anxiety_anchor/widgets/cut_control.dart';
 
 class RescueBreathingScreen extends StatefulWidget {
   const RescueBreathingScreen({super.key, this.preset});
@@ -174,6 +175,14 @@ class _RescueBreathingScreenState extends State<RescueBreathingScreen>
         SliverAppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
+          actions: const [
+            Padding(
+              padding: EdgeInsets.only(right: 12),
+              child: Center(
+                child: CutControl(compact: true, currentId: 'breath'),
+              ),
+            ),
+          ],
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(48),
             child: TabBar(
@@ -263,16 +272,28 @@ class _RescueBreathingScreenState extends State<RescueBreathingScreen>
       child: SafeArea(
         child: Column(
           children: [
-            TabBar(
-              isScrollable: true,
-              onTap: (index) {
-                setState(() {
-                  _currentStyleIndex = index;
-                  _maybeRecreateSizeController();
-                  _startTimer();
-                });
-              },
-              tabs: _styles.map((s) => Tab(text: s['name'] as String)).toList(),
+            Row(
+              children: [
+                Expanded(
+                  child: TabBar(
+                    isScrollable: true,
+                    onTap: (index) {
+                      setState(() {
+                        _currentStyleIndex = index;
+                        _maybeRecreateSizeController();
+                        _startTimer();
+                      });
+                    },
+                    tabs: _styles
+                        .map((s) => Tab(text: s['name'] as String))
+                        .toList(),
+                  ),
+                ),
+                const Padding(
+                  padding: EdgeInsets.only(right: 8),
+                  child: CutControl(compact: true, currentId: 'breath'),
+                ),
+              ],
             ),
             Expanded(
               child: LayoutBuilder(

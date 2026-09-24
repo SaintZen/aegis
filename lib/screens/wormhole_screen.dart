@@ -6,7 +6,10 @@ import 'package:just_audio/just_audio.dart';
 import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
 
+import 'package:anxiety_anchor/audio/audio_halt.dart';
+import 'package:anxiety_anchor/services/aegis_log_service.dart';
 import 'package:anxiety_anchor/services/kinetic_voice_engine.dart';
+import 'package:anxiety_anchor/services/usage_log_service.dart';
 
 class WormholeScreen extends StatefulWidget {
   const WormholeScreen({super.key});
@@ -16,7 +19,7 @@ class WormholeScreen extends StatefulWidget {
 }
 
 class _WormholeScreenState extends State<WormholeScreen>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   late AnimationController vortexController;
   late AnimationController collapseController;
   late AnimationController _particleController;
@@ -86,6 +89,7 @@ class _WormholeScreenState extends State<WormholeScreen>
 
     _prepareBlackholeAudio();
     _initializeBlackholeVideo();
+    WidgetsBinding.instance.addObserver(this);
     _particleController.addListener(_handlePurgeHaptics);
     _particleController.addStatusListener((status) {
       if (status == AnimationStatus.completed && !_snapTriggered) {
@@ -151,17 +155,40 @@ class _WormholeScreenState extends State<WormholeScreen>
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (aegisLifecycleSilencesAudio(state)) {
+      vortexController.stop();
+      _isActive = false;
+      unawaited(_haltVoidAudio());
+      if (mounted) setState(() {});
+    }
+  }
+
+  Future<void> _haltVoidAudio() async {
+    try {
+      await _player.setLoopMode(LoopMode.off);
+      await _player.stop();
+    } catch (_) {}
+    try {
+      await _videoController?.pause();
+    } catch (_) {}
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _returnDelayTimer?.cancel();
+    unawaited(_haltVoidAudio().whenComplete(_player.dispose));
     vortexController.dispose();
     collapseController.dispose();
     _particleController.dispose();
     textController.dispose();
     _inputFocusNode.dispose();
-    _player.dispose();
     _videoController?.dispose();
-    _returnDelayTimer?.cancel();
     super.dispose();
   }
+
+  bool _voidLedgerWritten = false;
 
   void _setPurgeComplete() {
     _returnDelayTimer?.cancel();
@@ -170,17 +197,31 @@ class _WormholeScreenState extends State<WormholeScreen>
       _purgeComplete = true;
       _returnReady = false;
     });
+    if (!_voidLedgerWritten) {
+      _voidLedgerWritten = true;
+      unawaited(_logVoidPurge());
+    }
     _returnDelayTimer = Timer(const Duration(milliseconds: 1200), () {
       if (!mounted || !_purgeComplete) return;
       setState(() => _returnReady = true);
     });
   }
 
+  Future<void> _logVoidPurge() async {
+    await UsageLogService.logVoidRelease();
+    // Subtractive: never persist the shredded signal. PDF shows
+    // [REDACTED/PURGED] / CLEAR from the empty ledger body.
+    await AegisLogService.logLedgerEntry(
+      type: 'THE VOID',
+      content: '',
+    );
+  }
+
   void _toggleBlackhole() {
     setState(() => _isActive = !_isActive);
     if (_isActive) {
       vortexController.repeat();
-      _player.play();
+      unawaited(_player.setLoopMode(LoopMode.one).then((_) => _player.play()));
     } else {
       vortexController.stop();
       _player.pause();

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,11 +9,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:video_player/video_player.dart';
 import 'package:just_audio/just_audio.dart';
 
+import 'package:anxiety_anchor/audio/audio_halt.dart';
 import 'package:anxiety_anchor/services/usage_log_service.dart';
 import 'package:anxiety_anchor/services/vault_service.dart';
 import 'package:anxiety_anchor/models/vault_model.dart';
 import 'package:anxiety_anchor/widgets/vault_intake_panel.dart';
 import 'package:anxiety_anchor/widgets/vault_timer_view.dart';
+
+/// SECURE FOUNDATION footer fill. Must stay opaque over the Vista/video bed.
+const Color kSecureFoundationFill = Color(0xF2000000);
 
 class WorryVaultScreen extends StatefulWidget {
   const WorryVaultScreen({super.key});
@@ -22,7 +27,7 @@ class WorryVaultScreen extends StatefulWidget {
 }
 
 class _WorryVaultScreenState extends State<WorryVaultScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   static const String _vaultVideoPath = 'assets/videos/vault_door.mp4';
   static const String _vaultVideoFileName = 'vault_door.mp4';
   String get _vaultAssetPath =>
@@ -67,6 +72,7 @@ class _WorryVaultScreenState extends State<WorryVaultScreen>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.landscapeRight,
       DeviceOrientation.landscapeLeft,
@@ -325,7 +331,31 @@ class _WorryVaultScreenState extends State<WorryVaultScreen>
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (aegisLifecycleSilencesAudio(state)) {
+      unawaited(_haltVaultAudio());
+    }
+  }
+
+  Future<void> _haltVaultAudio() async {
+    try {
+      await _vaultAmbience.setLoopMode(LoopMode.off);
+      await _vaultAmbience.stop();
+    } catch (_) {}
+    try {
+      await _vaultSfx.stop();
+    } catch (_) {}
+    try {
+      await _systemVoice.stop();
+    } catch (_) {}
+    try {
+      await _controller?.pause();
+    } catch (_) {}
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _logVaultSession();
     _timer?.cancel();
     _lockoutTimer?.cancel();
@@ -336,9 +366,11 @@ class _WorryVaultScreenState extends State<WorryVaultScreen>
     _controller?.removeListener(_onVaultVideoControllerUpdate);
     _controller?.dispose();
     _frostController.dispose();
-    _vaultSfx.dispose();
-    _vaultAmbience.dispose();
-    _systemVoice.dispose();
+    unawaited(_haltVaultAudio().whenComplete(() {
+      _vaultSfx.dispose();
+      _vaultAmbience.dispose();
+      _systemVoice.dispose();
+    }));
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
     ]);
@@ -553,7 +585,7 @@ class _WorryVaultScreenState extends State<WorryVaultScreen>
                       color: Colors.black,
                       child: SafeArea(
                         child: Padding(
-                          padding: const EdgeInsets.fromLTRB(12, 8, 12, 100),
+                          padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
                           child: VaultTimerView(
                             key: ValueKey<String>(
                               _vaultArchive!.lockedAt.toIso8601String(),
@@ -584,12 +616,13 @@ class _WorryVaultScreenState extends State<WorryVaultScreen>
                       ),
                     ),
                   ),
-                Positioned(
-                  bottom: 40,
-                  left: 20,
-                  right: 20,
-                  child: _buildVoidButton(),
-                ),
+                if (_vaultArchive == null)
+                  Positioned(
+                    bottom: 40,
+                    left: 20,
+                    right: 20,
+                    child: _buildVoidButton(),
+                  ),
               ],
             );
           },
@@ -664,40 +697,49 @@ class _WorryVaultScreenState extends State<WorryVaultScreen>
   }
 
   Widget _buildVoidButton() {
-    return SizedBox(
-      width: 200,
-      child: OutlinedButton(
-        onPressed: () {
-          FocusScope.of(context).unfocus();
-          Navigator.pushNamed(context, '/wormhole');
-        },
-        style: OutlinedButton.styleFrom(
-          foregroundColor: Colors.white70,
-          side: const BorderSide(color: Colors.white30),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-        ),
-        child: const Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'SECURE FOUNDATION',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+        child: Material(
+          color: kSecureFoundationFill,
+          child: InkWell(
+            onTap: () {
+              FocusScope.of(context).unfocus();
+              Navigator.pushNamed(context, '/wormhole');
+            },
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.white30),
+              ),
+              child: const Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'SECURE FOUNDATION',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  SizedBox(height: 6),
+                  Text(
+                    'Your foundation is stored locally and encrypted. '
+                    'You are the only person with access to this perimeter.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 11,
+                      height: 1.3,
+                    ),
+                  ),
+                ],
               ),
             ),
-            SizedBox(height: 6),
-            Text(
-              'Your foundation is stored locally and encrypted. '
-              'You are the only person with access to this perimeter.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.white70,
-                fontSize: 11,
-                height: 1.3,
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -870,15 +912,6 @@ class _WorryVaultScreenState extends State<WorryVaultScreen>
     _isLocked = false;
     _vaultReady = false;
     _vaultArchive = null;
-  }
-
-  Future<void> _showEmergencyAccessDialog() async {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('INTAKE ACTIVE. EMERGENCY ACCESS DISABLED.'),
-      ),
-    );
   }
 
   void _startFrostAnimation() {
