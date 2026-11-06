@@ -113,7 +113,7 @@ class _BreathingGuideScreenState extends State<BreathingGuideScreen>
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.lungs, size: 50, color: Colors.pinkAccent),
+                  const Icon(Icons.air, size: 50, color: Colors.pinkAccent),
                   const Text(
                     'Breathing Guide',
                     style: TextStyle(

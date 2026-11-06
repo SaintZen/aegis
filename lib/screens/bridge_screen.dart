@@ -36,7 +36,7 @@ class BridgeScreen extends StatefulWidget {
 class _BridgeScreenState extends State<BridgeScreen>
     with WidgetsBindingObserver {
   Timer? _anchorHapticTimer;
-  Timer? _killSwitchTimer;
+  Timer? _scramTimer;
   bool _anchorPressed = false;
   int _hapticStep = 0;
 
@@ -112,279 +112,147 @@ class _BridgeScreenState extends State<BridgeScreen>
               ),
             ),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: Center(
-                        child: SizedBox(
-                          width: double.infinity,
-                          child: Center(
-                            child: Stack(
-                              alignment: Alignment.center,
-                              clipBehavior: Clip.none,
-                              children: [
-                                IgnorePointer(
-                                  child: Container(
-                                    width: anchorSize * 2.35,
-                                    height: anchorSize * 1.55,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(8),
-                                      gradient: RadialGradient(
-                                        center: const Alignment(0, -0.12),
-                                        radius: 0.92,
-                                        colors: const [
-                                          Color(0xFF141414),
-                                          Color(0xFF0A0A0A),
-                                          Color(0xFF000000),
-                                        ],
-                                        stops: const [0.0, 0.45, 1.0],
-                                      ),
+              child: SingleChildScrollView(
+                physics: const ClampingScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    _buildMonolith(anchorSize),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: anchorSize,
+                      child: FocusTraversalGroup(
+                        policy: OrderedTraversalPolicy(),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _buildBridgeOutlet(
+                              label: 'AUDIT',
+                              semanticsHint: 'Launches the ledger print stream',
+                              leading: const Icon(
+                                Icons.print,
+                                size: 14,
+                                color: _kBridgeOrange,
+                              ),
+                              onTap: () async {
+                                await PdfGeneratorService.exportAuditLog();
+                                if (!context.mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Ledger print stream launched.',
                                     ),
                                   ),
-                                ),
-                                GestureDetector(
-                                  onTapDown: (_) => _onAnchorPointerDown(),
-                                  onTapUp: (_) => _onAnchorPointerRelease(),
-                                  onTapCancel: _onAnchorPointerRelease,
-                                  onLongPressStart: (_) =>
-                                      _triggerKillSwitch(),
-                                  child: Container(
-                                    width: anchorSize,
-                                    height: anchorSize,
-                                    decoration: BoxDecoration(
-                                      color: Colors.white
-                                          .withValues(alpha: 0.03),
-                                      borderRadius: BorderRadius.circular(8),
-                                      border:
-                                          Border.all(color: Colors.white12),
-                                    ),
-                                    child: Center(
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          BrandedAnchor(
-                                            size: anchorSize * 0.74,
-                                            color: Colors.white,
-                                          ),
-                                          const SizedBox(height: 12),
-                                          Container(
-                                            height: 1,
-                                            width: anchorSize * 0.55,
-                                            color: Colors.white
-                                                .withValues(alpha: 0.11),
-                                          ),
-                                          const SizedBox(height: 8),
-                                          const FittedBox(
-                                            fit: BoxFit.scaleDown,
-                                            child: Text(
-                                              'CHECKPOINT SAVED',
-                                              style: TextStyle(
-                                                color: Color(0xFFFFA500),
-                                                fontFamily: 'RobotoMono',
-                                                letterSpacing: 2.0,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          FittedBox(
-                                            fit: BoxFit.scaleDown,
-                                            child: Text(
-                                              'Continue from here',
-                                              style: TextStyle(
-                                                color: Colors.white
-                                                    .withValues(alpha: 0.6),
-                                                fontFamily: 'RobotoMono',
-                                                fontSize: 11,
-                                                letterSpacing: 1.2,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
+                                );
+                              },
                             ),
-                          ),
+                            const SizedBox(height: 4),
+                            _buildBridgeOutlet(
+                              label: 'MAINTENANCE /\nLEDGER',
+                              semanticsHint: 'Opens calibration and ledger tools',
+                              leading: const Icon(
+                                Icons.tune,
+                                size: 14,
+                                color: _kBridgeOrange,
+                              ),
+                              onTap: () {
+                                Navigator.of(context).push<void>(
+                                  MaterialPageRoute<void>(
+                                    builder: (_) =>
+                                        const BridgeMaintenanceLedgerScreen(),
+                                  ),
+                                );
+                              },
+                            ),
+                            const SizedBox(height: 4),
+                            _buildBridgeOutlet(
+                              label: 'NOT TODAY',
+                              semanticsHint:
+                                  'Opens refusal scripts and emergency contacts',
+                              onTap: () => Navigator.pushNamed(
+                                context,
+                                '/not-today',
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            _buildBridgeOutlet(
+                              label: 'ASMR',
+                              semanticsHint: 'Opens sonic pharmacy',
+                              onTap: () =>
+                                  Navigator.pushNamed(context, '/pharmacy'),
+                            ),
+                            const SizedBox(height: 4),
+                            _buildBridgeOutlet(
+                              label: 'DICTIONARY',
+                              semanticsHint: 'Opens AEGIS definitions hub',
+                              onTap: () => Navigator.pushNamed(
+                                context,
+                                '/resources',
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            _buildBridgeOutlet(
+                              label: 'ADVOCACY',
+                              semanticsHint:
+                                  'Opens Advocacy: shield directory, paper trail, complaint channels',
+                              onTap: () => Navigator.pushNamed(
+                                context,
+                                '/advocacy',
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            _buildBridgeOutlet(
+                              label: 'FOUR GATES',
+                              semanticsHint: _dueRetestCount > 0
+                                  ? 'Opens Four Gates. '
+                                      '$_dueRetestCount re-test '
+                                      '${_dueRetestCount == 1 ? 'is' : 'are'} '
+                                      'due for ratification.'
+                                  : 'Opens Four Gates. '
+                                      'Counter-imagination '
+                                      'interceptor that audits failure '
+                                      'preconditions before the '
+                                      'imagination rewrites the event.',
+                              leading: const _FourGatesGlyph(),
+                              subtitle:
+                                  'Counter-imagination interceptor. Audits '
+                                  'failure preconditions before the '
+                                  'imagination rewrites the event.',
+                              retestBadgeCount: _dueRetestCount,
+                              onTap: () async {
+                                Telemetry.emit('four_gates_tile_open');
+                                await Navigator.pushNamed(
+                                  context,
+                                  '/four-gates',
+                                );
+                                // The operator may have created or
+                                // (in 1.4-C) ratified contracts during
+                                // the visit — refresh the badge.
+                                if (!mounted) return;
+                                await _refreshRetestBadge();
+                              },
+                            ),
+                          ],
                         ),
                       ),
                     ),
-                  ),
-                  SingleChildScrollView(
-                    physics: const ClampingScrollPhysics(),
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        SizedBox(
-                          width: anchorSize,
-                          child: OutlinedButton.icon(
-                            onPressed: () async {
-                              await PdfGeneratorService.exportAuditLog();
-                              if (!context.mounted) return;
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'Ledger print stream launched.',
-                                  ),
-                                ),
-                              );
-                            },
-                            icon: const Icon(Icons.print, size: 16),
-                            label: const Text(
-                              'AUDIT',
-                              style: TextStyle(
-                                fontFamily: 'RobotoMono',
-                                letterSpacing: 1.0,
-                              ),
-                            ),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: _kBridgeOrange,
-                              side: const BorderSide(
-                                color: _kBridgeOrange,
-                                width: 1.5,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                          ),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 16, bottom: 4),
+                      child: Text(
+                        'AEGIS v1.0 — Operator Console',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.38),
+                          fontFamily: 'RobotoMono',
+                          fontSize: 10,
+                          letterSpacing: 1.0,
+                          fontWeight: FontWeight.w500,
                         ),
-                        const SizedBox(height: 10),
-                        SizedBox(
-                          width: anchorSize,
-                          child: OutlinedButton.icon(
-                            onPressed: () {
-                              Navigator.of(context).push<void>(
-                                MaterialPageRoute<void>(
-                                  builder: (_) =>
-                                      const BridgeMaintenanceLedgerScreen(),
-                                ),
-                              );
-                            },
-                            icon: const Icon(Icons.tune, size: 16),
-                            label: const Text(
-                              'MAINTENANCE / LEDGER',
-                              style: TextStyle(
-                                fontFamily: 'RobotoMono',
-                                letterSpacing: 0.8,
-                              ),
-                            ),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: _kBridgeOrange,
-                              side: const BorderSide(
-                                color: _kBridgeOrange,
-                                width: 1.5,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 14),
-                        SizedBox(
-                          width: anchorSize,
-                          child: FocusTraversalGroup(
-                            policy: OrderedTraversalPolicy(),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                _buildBridgeOutlet(
-                                  label: 'NOT TODAY',
-                                  semanticsHint:
-                                      'Opens refusal scripts and emergency contacts',
-                                  onTap: () => Navigator.pushNamed(
-                                    context,
-                                    '/not-today',
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                _buildBridgeOutlet(
-                                  label: 'ASMR',
-                                  semanticsHint: 'Opens sonic pharmacy',
-                                  onTap: () =>
-                                      Navigator.pushNamed(context, '/pharmacy'),
-                                ),
-                                const SizedBox(height: 4),
-                                _buildBridgeOutlet(
-                                  label: 'DICTIONARY',
-                                  semanticsHint: 'Opens AEGIS definitions',
-                                  onTap: () => Navigator.pushNamed(
-                                    context,
-                                    '/resources',
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                _buildBridgeOutlet(
-                                  label: 'ADVOCACY',
-                                  semanticsHint: 'Opens shield tools',
-                                  onTap: () => Navigator.pushNamed(
-                                    context,
-                                    '/advocacy',
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                _buildBridgeOutlet(
-                                  label: 'FOUR GATES',
-                                  semanticsHint: _dueRetestCount > 0
-                                      ? 'Opens Four Gates. '
-                                          '$_dueRetestCount re-test '
-                                          '${_dueRetestCount == 1 ? 'is' : 'are'} '
-                                          'due for ratification.'
-                                      : 'Opens Four Gates. '
-                                          'Counter-imagination '
-                                          'interceptor that audits failure '
-                                          'preconditions before the '
-                                          'imagination rewrites the event.',
-                                  leading: const _FourGatesGlyph(),
-                                  subtitle:
-                                      'Counter-imagination interceptor. Audits '
-                                      'failure preconditions before the '
-                                      'imagination rewrites the event.',
-                                  retestBadgeCount: _dueRetestCount,
-                                  onTap: () async {
-                                    Telemetry.emit('four_gates_tile_open');
-                                    await Navigator.pushNamed(
-                                      context,
-                                      '/four-gates',
-                                    );
-                                    // The operator may have created or
-                                    // (in 1.4-C) ratified contracts during
-                                    // the visit — refresh the badge.
-                                    if (!mounted) return;
-                                    await _refreshRetestBadge();
-                                  },
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 20, bottom: 4),
-                          child: Text(
-                            'AEGIS v1.0 — Operator Console',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.38),
-                              fontFamily: 'RobotoMono',
-                              fontSize: 10,
-                              letterSpacing: 1.0,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ],
@@ -393,17 +261,107 @@ class _BridgeScreenState extends State<BridgeScreen>
     );
   }
 
+  /// Monolith halo + 1.25s SCRAM hold. The 1250ms timer is the only
+  /// activation path — do not attach onLongPressStart (that fires at 500ms).
+  Widget _buildMonolith(double anchorSize) {
+    return Center(
+      child: Stack(
+        alignment: Alignment.center,
+        clipBehavior: Clip.none,
+        children: [
+          IgnorePointer(
+            child: Container(
+              width: anchorSize * 2.35,
+              height: anchorSize * 1.55,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                gradient: const RadialGradient(
+                  center: Alignment(0, -0.12),
+                  radius: 0.92,
+                  colors: [
+                    Color(0xFF141414),
+                    Color(0xFF0A0A0A),
+                    Color(0xFF000000),
+                  ],
+                  stops: [0.0, 0.45, 1.0],
+                ),
+              ),
+            ),
+          ),
+          GestureDetector(
+            onTapDown: (_) => _onAnchorPointerDown(),
+            onTapUp: (_) => _onAnchorPointerRelease(),
+            onTapCancel: _onAnchorPointerRelease,
+            child: Container(
+              width: anchorSize,
+              height: anchorSize,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.03),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.white12),
+              ),
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    BrandedAnchor(
+                      size: anchorSize * 0.74,
+                      color: Colors.white,
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      height: 1,
+                      width: anchorSize * 0.55,
+                      color: Colors.white.withValues(alpha: 0.11),
+                    ),
+                    const SizedBox(height: 8),
+                    const FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        'SCRAM',
+                        style: TextStyle(
+                          color: Color(0xFFFFA500),
+                          fontFamily: 'RobotoMono',
+                          letterSpacing: 2.0,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        '1.25s HOLD',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.6),
+                          fontFamily: 'RobotoMono',
+                          fontSize: 11,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _onAnchorPointerDown() {
     _anchorPressed = true;
     _hapticStep = 0;
     _anchorHapticTimer?.cancel();
-    _killSwitchTimer?.cancel();
+    _scramTimer?.cancel();
 
     _runAnchorCompressionPulse(220);
 
-    _killSwitchTimer = Timer(const Duration(milliseconds: 1250), () {
+    _scramTimer = Timer(const Duration(milliseconds: 1250), () {
       if (_anchorPressed) {
-        _triggerKillSwitch();
+        _triggerScram();
       }
     });
   }
@@ -428,12 +386,13 @@ class _BridgeScreenState extends State<BridgeScreen>
   void _onAnchorPointerRelease() {
     _anchorPressed = false;
     _anchorHapticTimer?.cancel();
-    _killSwitchTimer?.cancel();
+    _scramTimer?.cancel();
   }
 
-  void _triggerKillSwitch() {
+  void _triggerScram() {
     _onAnchorPointerRelease();
-    Navigator.pushNamed(context, '/wormhole');
+    // Priority 0 blank field. Not the Void.
+    Navigator.pushNamed(context, '/scram');
   }
 
   /// Outlet row: dark fill, orange border/text — matches maintenance / ledger accent.
@@ -460,16 +419,26 @@ class _BridgeScreenState extends State<BridgeScreen>
       fontWeight: FontWeight.w500,
       letterSpacing: 1.2,
       fontSize: 12,
+      height: 1.25,
       color: _kBridgeOrange,
     );
+    // Outlets are monolith-width (40%). Long labels must wrap inside
+    // the orange box — a Row Text will paint past the border.
+    final Widget labelText = Text(
+      label,
+      textAlign: TextAlign.center,
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
+      style: labelStyle,
+    );
     final Widget labelRow = leading == null
-        ? Text(label, textAlign: TextAlign.center, style: labelStyle)
+        ? labelText
         : Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               leading,
-              const SizedBox(width: 10),
-              Text(label, textAlign: TextAlign.center, style: labelStyle),
+              const SizedBox(width: 8),
+              Flexible(child: labelText),
             ],
           );
 
@@ -559,7 +528,7 @@ class _BridgeScreenState extends State<BridgeScreen>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _anchorHapticTimer?.cancel();
-    _killSwitchTimer?.cancel();
+    _scramTimer?.cancel();
     super.dispose();
   }
 }

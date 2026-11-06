@@ -37,7 +37,14 @@ Best, [User Name]
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: const Text('Shield'),
+        title: const Text(
+          'ADVOCACY',
+          style: TextStyle(
+            fontFamily: 'RobotoMono',
+            letterSpacing: 1.6,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         backgroundColor: Colors.black,
         elevation: 0,
       ),
@@ -76,6 +83,22 @@ Best, [User Name]
                   ),
                   icon: const Icon(Icons.open_in_new),
                   label: const Text('Read the Details'),
+                ),
+              ),
+              const SizedBox(height: 16),
+              _AdvocacyModuleCard(
+                title: 'Rules of Engagement',
+                subtitle: 'Fiduciary, paper trail, complaint channels.',
+                body:
+                    'HR is a corporate fiduciary. Document every interaction. '
+                    'File through federal and state channels when a claim is denied.',
+                action: ElevatedButton.icon(
+                  onPressed: () => Navigator.pushNamed(
+                    context,
+                    '/rules-of-engagement',
+                  ),
+                  icon: const Icon(Icons.open_in_new),
+                  label: const Text('Open Rules'),
                 ),
               ),
               const SizedBox(height: 16),

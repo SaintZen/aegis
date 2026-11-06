@@ -261,9 +261,13 @@ final List<ShieldDirectoryEntry> shieldDirectoryEntries = [
   ),
 ];
 
-/// Release-visible directory entries (filters out `placeholder: true`).
+/// Release-visible directory entries.
+/// Hides drafts (`placeholder: true`) and any row that fails [ShieldDirectoryEntry.hasValidUrl]
+/// so example.* hosts cannot leak even if a draft flag is wrong.
 List<ShieldDirectoryEntry> get shieldDirectoryLiveEntries =>
-    shieldDirectoryEntries.where((e) => !e.placeholder).toList(growable: false);
+    shieldDirectoryEntries
+        .where((e) => !e.placeholder && e.hasValidUrl)
+        .toList(growable: false);
 
 /// Section order for grouping in the UI.
 const List<String> advocacySupportCategoryOrder = [

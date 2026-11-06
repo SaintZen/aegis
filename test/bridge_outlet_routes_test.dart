@@ -3,6 +3,7 @@ import 'package:anxiety_anchor/screens/advocacy_screen.dart';
 import 'package:anxiety_anchor/screens/bridge_screen.dart';
 import 'package:anxiety_anchor/screens/four_gates_screen.dart';
 import 'package:anxiety_anchor/screens/resources_screen.dart';
+import 'package:anxiety_anchor/screens/scram_screen.dart';
 import 'package:anxiety_anchor/screens/sonic_pharmacy.dart';
 import 'package:anxiety_anchor/services/telemetry.dart';
 import 'package:flutter/material.dart';
@@ -26,6 +27,81 @@ void main() {
     state.pop();
     await tester.pumpAndSettle();
   }
+
+  group('Bridge monolith', () {
+    testWidgets('shows SCRAM / 1.25s HOLD, never CHECKPOINT SAVED or KILL SWITCH',
+        (tester) async {
+      await tester.binding.setSurfaceSize(const Size(390, 1200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await pumpMaterialAppWithL10n(
+        tester,
+        home: const BridgeScreen(),
+      );
+
+      expect(find.text('SCRAM'), findsOneWidget);
+      expect(find.text('1.25s HOLD'), findsOneWidget);
+      expect(find.text('CHECKPOINT SAVED'), findsNothing);
+      expect(find.textContaining('KILL SWITCH'), findsNothing);
+      expect(find.text('Continue from here'), findsNothing);
+    });
+
+    testWidgets('MAINTENANCE / LEDGER stays inside its outlet box',
+        (tester) async {
+      await tester.binding.setSurfaceSize(const Size(320, 1200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await pumpMaterialAppWithL10n(
+        tester,
+        home: const BridgeScreen(),
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(find.textContaining('MAINTENANCE'), findsOneWidget);
+      expect(find.textContaining('LEDGER'), findsOneWidget);
+
+      final label = find.textContaining('MAINTENANCE');
+      final textBox = tester.getRect(label);
+      final outlet = tester.getRect(
+        find.ancestor(of: label, matching: find.byType(InkWell)).first,
+      );
+      expect(textBox.left, greaterThanOrEqualTo(outlet.left));
+      expect(textBox.right, lessThanOrEqualTo(outlet.right + 0.5));
+      expect(textBox.top, greaterThanOrEqualTo(outlet.top));
+      expect(textBox.bottom, lessThanOrEqualTo(outlet.bottom + 0.5));
+    });
+
+    testWidgets('1.25s hold opens /scram blank field, never /wormhole',
+        (tester) async {
+      await tester.binding.setSurfaceSize(const Size(390, 1200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await pumpMaterialAppWithL10n(
+        tester,
+        home: const BridgeScreen(),
+        routes: {
+          '/scram': (_) => ScramScreen(
+                blankDuration: const Duration(milliseconds: 80),
+                logLedgerEntry: ({
+                  required String type,
+                  required String content,
+                }) async {},
+                haltVoice: () async {},
+              ),
+        },
+      );
+
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.text('SCRAM')),
+      );
+      await tester.pump(const Duration(milliseconds: 1300));
+      await tester.pump();
+
+      expect(find.byType(ScramScreen), findsOneWidget);
+      expect(find.byType(BridgeScreen), findsOneWidget);
+      await gesture.up();
+    });
+  });
 
   group('Bridge navigation', () {
     testWidgets('rows push /not-today, /pharmacy, /resources', (tester) async {

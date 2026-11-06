@@ -4,13 +4,15 @@ import 'package:share_plus/share_plus.dart';
 
 import 'package:anxiety_anchor/services/boundary_identity_service.dart';
 
-/// NOT_TODAY_SHEET — Aegis-flat bottom surface; name editable only in Settings (Bridge).
+/// NOT_TODAY_SHEET — Aegis-flat bottom surface.
+/// Operator name is typed here (and on the Not Today surface) and stored.
 class NotTodaySheet {
   NotTodaySheet._();
 
   static Future<void> show(
     BuildContext context, {
     required String scriptTemplate,
+    String initialRecipient = '',
   }) async {
     final yourName = await BoundaryIdentityService.getDisplayName();
     if (!context.mounted) return;
@@ -25,7 +27,7 @@ class NotTodaySheet {
       elevation: 0,
       builder: (ctx) {
         final viewInsets = MediaQuery.viewInsetsOf(ctx).bottom;
-        final h = MediaQuery.sizeOf(ctx).height * 0.6;
+        final h = MediaQuery.sizeOf(ctx).height * 0.72;
         return Padding(
           padding: EdgeInsets.only(bottom: viewInsets),
           child: Align(
@@ -46,6 +48,7 @@ class NotTodaySheet {
                   child: _NotTodaySheetBody(
                     scriptTemplate: scriptTemplate,
                     yourName: yourName,
+                    initialRecipient: initialRecipient,
                   ),
                 ),
               ),
@@ -71,27 +74,40 @@ class _NotTodaySheetBody extends StatefulWidget {
   const _NotTodaySheetBody({
     required this.scriptTemplate,
     required this.yourName,
+    this.initialRecipient = '',
   });
 
   final String scriptTemplate;
   final String yourName;
+  final String initialRecipient;
 
   @override
   State<_NotTodaySheetBody> createState() => _NotTodaySheetBodyState();
 }
 
 class _NotTodaySheetBodyState extends State<_NotTodaySheetBody> {
-  final TextEditingController _recipient = TextEditingController();
+  late final TextEditingController _recipient;
+  late final TextEditingController _operatorName;
 
   @override
   void initState() {
     super.initState();
+    _recipient = TextEditingController(text: widget.initialRecipient);
+    _operatorName = TextEditingController(text: widget.yourName);
     _recipient.addListener(() => setState(() {}));
+    _operatorName.addListener(_onOperatorNameChanged);
+  }
+
+  Future<void> _onOperatorNameChanged() async {
+    if (!mounted) return;
+    setState(() {});
+    await BoundaryIdentityService.setDisplayName(_operatorName.text);
   }
 
   @override
   void dispose() {
     _recipient.dispose();
+    _operatorName.dispose();
     super.dispose();
   }
 
@@ -100,7 +116,7 @@ class _NotTodaySheetBodyState extends State<_NotTodaySheetBody> {
   String get _preview => NotTodaySheet.injectScript(
         widget.scriptTemplate,
         _recipient.text,
-        widget.yourName,
+        _operatorName.text,
       );
 
   Future<void> _copy() async {
@@ -145,62 +161,18 @@ class _NotTodaySheetBodyState extends State<_NotTodaySheetBody> {
             ),
           ),
           const SizedBox(height: 20),
-          Text(
-            'RECIPIENT NAME',
-            style: TextStyle(
-              color: Colors.white54,
-              fontFamily: 'RobotoMono',
-              fontSize: 10,
-              letterSpacing: 1.0,
-            ),
-          ),
-          const SizedBox(height: 6),
-          TextField(
+          NotTodayNameField(
+            key: const Key('not_today_sheet_recipient'),
             controller: _recipient,
-            style: const TextStyle(
-              color: Colors.white,
-              fontFamily: 'RobotoMono',
-              fontSize: 14,
-            ),
-            decoration: InputDecoration(
-              hintText: 'Enter name',
-              hintStyle: TextStyle(
-                color: Colors.white.withOpacity(0.35),
-                fontFamily: 'RobotoMono',
-              ),
-              border: const UnderlineInputBorder(
-                borderSide: BorderSide(color: Color(0xFF3A3A3A)),
-              ),
-              enabledBorder: const UnderlineInputBorder(
-                borderSide: BorderSide(color: Color(0xFF3A3A3A)),
-              ),
-              focusedBorder: const UnderlineInputBorder(
-                borderSide: BorderSide(color: Color(0xFF5A5A5A)),
-              ),
-              contentPadding: const EdgeInsets.only(bottom: 8),
-              isDense: true,
-            ),
+            label: 'RECIPIENT NAME',
+            hint: 'Who this goes to',
           ),
           const SizedBox(height: 16),
-          Text(
-            'YOUR NAME',
-            style: TextStyle(
-              color: Colors.white54,
-              fontFamily: 'RobotoMono',
-              fontSize: 10,
-              letterSpacing: 1.0,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            widget.yourName.isEmpty ? '— not set in Settings —' : widget.yourName,
-            style: TextStyle(
-              color: widget.yourName.isEmpty
-                  ? Colors.white38
-                  : Colors.white70,
-              fontFamily: 'RobotoMono',
-              fontSize: 14,
-            ),
+          NotTodayNameField(
+            key: const Key('not_today_sheet_operator_name'),
+            controller: _operatorName,
+            label: 'YOUR NAME',
+            hint: 'Signs the script',
           ),
           const SizedBox(height: 20),
           Text(
@@ -267,6 +239,66 @@ class _NotTodaySheetBodyState extends State<_NotTodaySheetBody> {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Underline name field used on the Not Today surface and the deploy sheet.
+class NotTodayNameField extends StatelessWidget {
+  const NotTodayNameField({
+    super.key,
+    required this.controller,
+    required this.label,
+    required this.hint,
+  });
+
+  final TextEditingController controller;
+  final String label;
+  final String hint;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white54,
+            fontFamily: 'RobotoMono',
+            fontSize: 10,
+            letterSpacing: 1.0,
+          ),
+        ),
+        const SizedBox(height: 6),
+        TextField(
+          controller: controller,
+          textCapitalization: TextCapitalization.words,
+          style: const TextStyle(
+            color: Colors.white,
+            fontFamily: 'RobotoMono',
+            fontSize: 14,
+          ),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: TextStyle(
+              color: Colors.white.withValues(alpha: 0.35),
+              fontFamily: 'RobotoMono',
+            ),
+            border: const UnderlineInputBorder(
+              borderSide: BorderSide(color: Color(0xFF3A3A3A)),
+            ),
+            enabledBorder: const UnderlineInputBorder(
+              borderSide: BorderSide(color: Color(0xFF3A3A3A)),
+            ),
+            focusedBorder: const UnderlineInputBorder(
+              borderSide: BorderSide(color: Color(0xFF5A5A5A)),
+            ),
+            contentPadding: const EdgeInsets.only(bottom: 8),
+            isDense: true,
+          ),
+        ),
+      ],
     );
   }
 }

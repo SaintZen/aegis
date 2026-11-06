@@ -1,7 +1,20 @@
+import 'dart:async';
+
 import 'package:audioplayers/audioplayers.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
+
+import 'package:anxiety_anchor/audio/audio_halt.dart';
+
+/// Imported spoken-word files play once. They never inherit atmosphere
+/// bed looping.
+bool personalAudioImportedTrackLoops() => aegisImportedTrackLoops();
+
+/// Personal library silences on every non-resumed lifecycle state.
+bool personalAudioLifecycleSilencesAudio(AppLifecycleState state) {
+  return aegisLifecycleSilencesAudio(state);
+}
 
 class PersonalAudioLibraryScreen extends StatefulWidget {
   const PersonalAudioLibraryScreen({super.key});
@@ -12,11 +25,13 @@ class PersonalAudioLibraryScreen extends StatefulWidget {
 }
 
 class _PersonalAudioLibraryScreenState
-    extends State<PersonalAudioLibraryScreen> {
+    extends State<PersonalAudioLibraryScreen> with WidgetsBindingObserver {
   final AudioPlayer _player = AudioPlayer();
   final List<Map<String, String>> _personalTracks = [];
   final Set<String> _activeTracks = {};
   final Map<String, AudioPlayer> _atmospherePlayers = {};
+  StreamSubscription<void>? _completeSub;
+  String? _playingPath;
 
   final List<Map<String, dynamic>> _atmosphereTracks = [
     {'name': 'Wilderness Wind', 'icon': Icons.air, 'file': 'wind.mp3'},
@@ -30,12 +45,57 @@ class _PersonalAudioLibraryScreenState
   ];
 
   @override
-  void dispose() {
-    for (final player in _atmospherePlayers.values) {
-      player.dispose();
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    unawaited(_player.setReleaseMode(ReleaseMode.stop));
+    _completeSub = _player.onPlayerComplete.listen((_) {
+      if (!mounted) return;
+      setState(() => _playingPath = null);
+    });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (personalAudioLifecycleSilencesAudio(state)) {
+      unawaited(_haltAllAudio());
     }
-    _player.dispose();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _completeSub?.cancel();
+    unawaited(_haltAllAudio(notify: false).whenComplete(_player.dispose));
     super.dispose();
+  }
+
+  Future<void> _haltAllAudio({bool notify = true}) async {
+    await _haltPersonalPlayback(notify: notify);
+    await _haltAtmosphereBeds(notify: notify);
+  }
+
+  Future<void> _haltPersonalPlayback({bool notify = true}) async {
+    try {
+      await _player.setReleaseMode(ReleaseMode.stop);
+      await _player.stop();
+    } catch (_) {}
+    _playingPath = null;
+    if (notify && mounted) setState(() {});
+  }
+
+  Future<void> _haltAtmosphereBeds({bool notify = true}) async {
+    final players = List<AudioPlayer>.from(_atmospherePlayers.values);
+    _atmospherePlayers.clear();
+    _activeTracks.clear();
+    for (final player in players) {
+      try {
+        await player.setReleaseMode(ReleaseMode.stop);
+        await player.stop();
+      } catch (_) {}
+      await player.dispose();
+    }
+    if (notify && mounted) setState(() {});
   }
 
   Future<void> _pickPersonalAudio() async {
@@ -57,8 +117,14 @@ class _PersonalAudioLibraryScreenState
 
   Future<void> _playLocalFile(String? path) async {
     if (path == null || path.isEmpty) return;
+    if (_playingPath == path) {
+      await _haltPersonalPlayback();
+      return;
+    }
     await _player.stop();
+    await _player.setReleaseMode(ReleaseMode.stop);
     await _player.play(DeviceFileSource(path));
+    if (mounted) setState(() => _playingPath = path);
   }
 
   Future<void> _exportToPsychologist(String? filePath) async {
@@ -105,9 +171,16 @@ class _PersonalAudioLibraryScreenState
       return;
     }
 
+    if (!aegisBedLoopsWhileOnSurface(operatorOnSurface: true)) return;
+
     final player = AudioPlayer();
     await player.setReleaseMode(ReleaseMode.loop);
-    await player.play(AssetSource('audio/$file'));
+    try {
+      await player.play(AssetSource('audio/$file'));
+    } catch (_) {
+      await player.dispose();
+      return;
+    }
     _atmospherePlayers[name] = player;
     _activeTracks.add(name);
     setState(() {});
@@ -126,7 +199,7 @@ class _PersonalAudioLibraryScreenState
               'Upload Your Own Audio',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
-            subtitle: const Text('Add music or spoken word that helps you.'),
+            subtitle: const Text('Import a music or spoken-word file.'),
             onTap: _pickPersonalAudio,
           ),
           const Divider(),
@@ -149,8 +222,12 @@ class _PersonalAudioLibraryScreenState
             physics: const NeverScrollableScrollPhysics(),
             itemBuilder: (context, index) {
               final track = _personalTracks[index];
+              final path = track['path'];
+              final isPlaying = path != null && path == _playingPath;
               return ListTile(
-                leading: const Icon(Icons.music_note),
+                leading: Icon(
+                  isPlaying ? Icons.stop_circle : Icons.music_note,
+                ),
                 title: Text(track['name'] ?? 'Untitled'),
                 trailing: IconButton(
                   icon: const Icon(Icons.ios_share),

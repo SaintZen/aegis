@@ -6,6 +6,12 @@ import 'package:anxiety_anchor/widgets/emergency_crisis_sheet.dart';
 /// Calibration: Haptic intensity, audio, reduced motion, PDF config, safety.
 /// When [embedded] is true, only the scroll body is returned (no Scaffold) for
 /// use inside [BridgeMaintenanceLedgerScreen].
+const String kAegisCalibrationDisclaimer =
+    'Aegis is a grounding tool for stress management and '
+    'entertainment purposes. It is not a medical device. It does not '
+    'provide diagnosis, treatment, or medical advice. If you are in '
+    'crisis, please contact professional emergency services immediately.';
+
 class CalibrationScreen extends StatefulWidget {
   const CalibrationScreen({super.key, this.embedded = false});
 
@@ -392,10 +398,7 @@ class _CalibrationScreenState extends State<CalibrationScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const Text(
-                  'AnxietyAnchor is a grounding tool for stress management and '
-                  'entertainment purposes. It is not a medical device. It does not '
-                  'provide diagnosis, treatment, or medical advice. If you are in '
-                  'crisis, please contact professional emergency services immediately.',
+                  kAegisCalibrationDisclaimer,
                   style: TextStyle(color: Colors.white70, height: 1.5),
                 ),
                 const SizedBox(height: 16),

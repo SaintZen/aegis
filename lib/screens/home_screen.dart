@@ -6,7 +6,6 @@ import 'package:just_audio/just_audio.dart';
 
 import 'package:anxiety_anchor/l10n/app_localizations.dart';
 
-import 'package:anxiety_anchor/audio/atmosphere_mixer.dart';
 import 'package:anxiety_anchor/widgets/branded_anchor.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -248,7 +247,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _onAnchorPressed(BuildContext context) {
     HapticFeedback.heavyImpact();
-    AtmosphereMixer().playTrack('wind.mp3', volume: 0.3);
     _navigateToBreathing(context);
   }
 

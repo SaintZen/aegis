@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:anxiety_anchor/theme/aegis_hud.dart';
 import 'package:anxiety_anchor/widgets/emergency_crisis_sheet.dart';
 
 /// First-time entry gate with operational disclaimer and sensory cautions.
 /// Persists acceptance via shared_preferences.
+const String kAegisOperationalDisclaimer =
+    'Aegis is for entertainment and personal grounding '
+    'only. It is not a medical device and not a substitute for '
+    'a doctor or professional care. It does not provide '
+    'diagnosis, treatment, or medical advice. If you are in '
+    'crisis, contact professional or emergency services immediately.';
+
 class SafetyGateScreen extends StatefulWidget {
   const SafetyGateScreen({super.key, required this.onAccepted});
 
@@ -67,7 +75,7 @@ class _SafetyGateScreenState extends State<SafetyGateScreen> {
       backgroundColor: const Color(0xFF0A0A0A),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.fromLTRB(24, 24 + kAegisHudReserve, 24, 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -88,11 +96,7 @@ class _SafetyGateScreenState extends State<SafetyGateScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'AnxietyAnchor is for entertainment and personal grounding '
-                        'only. It is not a medical device and not a substitute for '
-                        'a doctor or professional care. It does not provide '
-                        'diagnosis, treatment, or medical advice. If you are in '
-                        'crisis, contact professional or emergency services immediately.',
+                        kAegisOperationalDisclaimer,
                         style: TextStyle(
                           color: Colors.white.withOpacity(0.9),
                           fontSize: 15,

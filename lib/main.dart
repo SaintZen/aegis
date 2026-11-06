@@ -20,11 +20,13 @@ import 'package:anxiety_anchor/screens/hollow_screen.dart';
 import 'package:anxiety_anchor/screens/home_screen.dart';
 import 'package:anxiety_anchor/screens/fiduciary_truth_screen.dart';
 import 'package:anxiety_anchor/screens/island_screen.dart';
+import 'package:anxiety_anchor/widgets/cut_control.dart';
 import 'package:anxiety_anchor/screens/kinetic_voice_drills_screen.dart';
 import 'package:anxiety_anchor/screens/kinetic_armory_screen.dart';
 import 'package:anxiety_anchor/screens/kinetic_action_screen.dart';
 import 'package:anxiety_anchor/screens/safety_gate_screen.dart';
 import 'package:anxiety_anchor/services/calibration_service.dart';
+import 'package:anxiety_anchor/screens/instrument_tour_screen.dart';
 import 'package:anxiety_anchor/screens/system_initialization_screen.dart';
 import 'package:anxiety_anchor/screens/personal_audio_library_screen.dart';
 import 'package:anxiety_anchor/screens/resource_detail_screen.dart';
@@ -42,6 +44,7 @@ import 'package:anxiety_anchor/screens/unified_exercise_screen.dart';
 import 'package:anxiety_anchor/screens/vault_lock_screen.dart';
 import 'package:anxiety_anchor/screens/wall_pushes_screen.dart';
 import 'package:anxiety_anchor/screens/worry_vault_screen.dart';
+import 'package:anxiety_anchor/screens/scram_screen.dart';
 import 'package:anxiety_anchor/screens/wormhole_screen.dart';
 import 'package:anxiety_anchor/lifelines/not_today_screen.dart';
 import 'package:anxiety_anchor/models/exercise.dart';
@@ -113,10 +116,19 @@ class AnxietyAnchorApp extends StatelessWidget {
                 '/fiduciary-truth': (_) => const FiduciaryTruthScreen(),
                 '/rules-of-engagement': (_) => const RulesOfEngagementScreen(),
                 '/four-gates': (_) => const FourGatesScreen(),
+                '/scram': (_) => const ScramScreen(),
                 '/wormhole': (_) => const WormholeScreen(),
                 '/circuit-breaker': (_) => const CircuitBreakerScreen(),
                 '/lab': (_) => const AnxietyLabScreen(),
-                '/island': (_) => const IslandScreen(),
+                '/island': (ctx) {
+                  final args = ModalRoute.of(ctx)?.settings.arguments;
+                  String? mode;
+                  if (args is String) mode = args;
+                  if (args is Map) {
+                    mode = args['mode'] as String?;
+                  }
+                  return IslandScreen(initialMode: mode);
+                },
                 '/home': (_) => const HomeScreen(),
                 '/terms-of-use': (_) => const TermsOfUseScreen(),
                 '/privacy': (_) => const PrivacyPolicyScreen(),
@@ -411,6 +423,8 @@ class _LegalGateState extends State<LegalGate> {
   bool _assetsBootstrapped = false;
   bool _initChecked = false;
   bool _systemInitialized = false;
+  bool _tourCompleted = false;
+  bool _landOnBridge = false;
 
   @override
   void initState() {
@@ -431,9 +445,11 @@ class _LegalGateState extends State<LegalGate> {
   Future<void> _loadInitializationState() async {
     final prefs = await SharedPreferences.getInstance();
     final initialized = prefs.getBool('system_initialized') ?? false;
+    final tourDone = await InstrumentTourScreen.hasCompleted();
     if (mounted) {
       setState(() {
         _systemInitialized = initialized;
+        _tourCompleted = tourDone;
         _initChecked = true;
       });
     }
@@ -525,22 +541,41 @@ class _LegalGateState extends State<LegalGate> {
         },
       );
     }
-    return const MainTabController();
+    if (!_tourCompleted) {
+      return InstrumentTourScreen(
+        onComplete: () {
+          if (!mounted) return;
+          setState(() {
+            _tourCompleted = true;
+            _landOnBridge = true;
+          });
+        },
+      );
+    }
+    return MainTabController(
+      initialIndex: _landOnBridge ? MainTabController.bridgeIndex : 0,
+    );
   }
 
 }
 
 class MainTabController extends StatefulWidget {
-  const MainTabController({super.key});
+  const MainTabController({super.key, this.initialIndex = 0});
+
+  /// Bridge pillar. First-run after the instrument tour lands here —
+  /// ENTER BRIDGE must open the Bridge, not the Anchor.
+  static const int bridgeIndex = 3;
+
+  final int initialIndex;
 
   @override
   State<MainTabController> createState() => _MainTabControllerState();
 }
 
 class _MainTabControllerState extends State<MainTabController> {
-  int _selectedIndex = 0;
+  late int _selectedIndex = widget.initialIndex;
 
-  // Four pillars: 0 Anchor, 1 Vistas, 2 Lab, 3 Bridge (MAINTENANCE / LEDGER opens stacked tabs)
+  // Four pillars: 0 Anchor, 1 Vistas, 2 Lab, 3 Bridge (MAINTENANCE / LEDGER opens the ledger)
   static const List<Widget> _pages = [
     HomeScreen(),             // 0: Anchor Pillar — anchor + breathing
     IslandScreen(),           // 1: Vista Pillar — Vistas, Kinetic, Affirmations
@@ -554,13 +589,34 @@ class _MainTabControllerState extends State<MainTabController> {
     });
   }
 
+  String? _cutDomainForTab(int index) {
+    switch (index) {
+      case 0:
+        return 'breath';
+      case 1:
+        return 'vista';
+      default:
+        return CutMemory.lastId;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isLandscape =
         MediaQuery.of(context).orientation == Orientation.landscape;
     final hideBottomNav = isLandscape && _selectedIndex == 1;
     return Scaffold(
-      body: _pages[_selectedIndex],
+      body: Column(
+        children: [
+          Expanded(child: _pages[_selectedIndex]),
+          if (!hideBottomNav &&
+              _selectedIndex != MainTabController.bridgeIndex)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+              child: CutControl(currentId: _cutDomainForTab(_selectedIndex)),
+            ),
+        ],
+      ),
       bottomNavigationBar: hideBottomNav
           ? null
           : Padding(

@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:anxiety_anchor/models/audit_cue.dart';
 import 'package:anxiety_anchor/models/somatic_sequence.dart';
+import 'package:anxiety_anchor/scripts/kinetic_scripts.dart';
 import 'package:anxiety_anchor/services/aegis_log_service.dart';
 import 'package:anxiety_anchor/services/haptics/somatic_controller.dart';
 import 'package:anxiety_anchor/screens/system_clear_popup.dart';
@@ -92,8 +93,9 @@ class _KineticActionScreenState extends State<KineticActionScreen>
     _killTimer?.cancel();
     await _somaticController?.emergencyStop();
     await AegisLogService.logEntry(
-      toolName: _toolLabel(widget.exerciseType),
+      toolName: kineticLedgerTool,
       status: 'Aborted',
+      signalInput: kineticInstrumentLabel(widget.exerciseType),
     );
     if (!mounted) return;
     setState(() => _showKillFlash = true);
@@ -256,8 +258,9 @@ class _KineticActionScreenState extends State<KineticActionScreen>
             : 'Incomplete';
 
     await AegisLogService.logEntry(
-      toolName: _toolLabel(widget.exerciseType),
+      toolName: kineticLedgerTool,
       status: status,
+      signalInput: kineticInstrumentLabel(widget.exerciseType),
     );
 
     if (result == SystemClearResult.yes) {
@@ -277,21 +280,6 @@ class _KineticActionScreenState extends State<KineticActionScreen>
   Future<void> _setRecommendations(List<String> keys) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setStringList('armory_recommendations', keys);
-  }
-
-  String _toolLabel(String key) {
-    switch (key) {
-      case 'wall_push':
-        return 'Wall Push';
-      case 'somatic_shaking':
-        return 'The Shake';
-      case 'muscle_clench':
-        return 'Isometric';
-      case 'pulse':
-        return 'The Pulse';
-      default:
-        return key;
-    }
   }
 
   Widget _buildShield() {

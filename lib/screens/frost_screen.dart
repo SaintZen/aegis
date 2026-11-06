@@ -9,6 +9,7 @@ import 'package:anxiety_anchor/services/aegis_log_service.dart';
 import 'package:anxiety_anchor/services/usage_log_service.dart';
 import 'package:anxiety_anchor/services/haptics/somatic_controller.dart';
 import 'package:anxiety_anchor/screens/resource_detail_screen.dart';
+import 'package:anxiety_anchor/widgets/cut_control.dart';
 
 class FrostScreen extends StatefulWidget {
   const FrostScreen({super.key});
@@ -53,6 +54,12 @@ class _FrostScreenState extends State<FrostScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
+          const Padding(
+            padding: EdgeInsets.only(right: 8),
+            child: Center(
+              child: CutControl(compact: true, currentId: 'frost'),
+            ),
+          ),
           IconButton(
             icon: const Icon(Icons.info_outline),
             onPressed: () {

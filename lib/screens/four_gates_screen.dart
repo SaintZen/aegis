@@ -7,12 +7,19 @@ import 'package:anxiety_anchor/services/aegis_log_service.dart';
 import 'package:anxiety_anchor/services/four_gates_vault.dart';
 import 'package:anxiety_anchor/services/pending_retest_store.dart';
 import 'package:anxiety_anchor/services/telemetry.dart';
+import 'package:anxiety_anchor/theme/aegis_hud.dart';
 
 /// Canonical Aegis-log `type` value for Four Gates runs.
 /// Used by [PdfGeneratorService] to bucket runs into the dedicated
 /// "FOUR GATES" section of the Technical Audit Log (verbatim body,
 /// no 80-char truncation).
 const String fourGatesLedgerType = 'FOUR_GATES';
+
+/// Operator-facing ink floor. `white70` / `white60` reads as grey on
+/// black for older eyes. Hierarchy stays; the floor is raised.
+const Color kFourGatesInk = Color(0xFFFFFFFF);
+const Color kFourGatesInkSecondary = Color(0xFFEDEDED);
+const Color kFourGatesInkMuted = Color(0xFFD0D0D0);
 
 /// Test seam: lets unit tests intercept the Aegis-log write performed by
 /// [FourGatesScreen._finalize] without spinning up a real document directory.
@@ -101,7 +108,7 @@ class _FourGatesScreenState extends State<FourGatesScreen> {
   static const _mono = TextStyle(
     fontFamily: 'RobotoMono',
     fontFamilyFallback: ['Courier', 'monospace'],
-    color: Colors.white,
+    color: kFourGatesInk,
     height: 1.35,
     letterSpacing: 0.5,
   );
@@ -423,18 +430,17 @@ class _FourGatesScreenState extends State<FourGatesScreen> {
     final isRetestMode = retest != null;
     return Scaffold(
       backgroundColor: const Color(0xFF000000),
-      appBar: AppBar(
+      appBar: aegisHudAppBar(
         backgroundColor: const Color(0xFF000000),
-        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: kFourGatesInk),
           onPressed: _back,
         ),
         title: Text(
           isRetestMode ? 'RE-TEST' : 'FOUR GATES',
           style: const TextStyle(
             fontFamily: 'RobotoMono',
-            color: Colors.white,
+            color: kFourGatesInk,
             letterSpacing: 2,
             fontWeight: FontWeight.w700,
           ),
@@ -548,103 +554,115 @@ class _GatePanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // HUD-aware app bar eats ~42px. On short surfaces the gate column
+    // no longer fits; scroll the questions and keep NEXT pinned.
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _StepIndicator(step: stepIndex, total: totalSteps, mono: mono),
-        const SizedBox(height: 24),
-        Text(
-          'GATE ${gate.number} — ${gate.label}',
-          style: mono.copyWith(
-            fontWeight: FontWeight.w900,
-            fontSize: 22,
-            letterSpacing: 2,
+        Expanded(
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _StepIndicator(step: stepIndex, total: totalSteps, mono: mono),
+                const SizedBox(height: 24),
+                Text(
+                  'GATE ${gate.number} — ${gate.label}',
+                  style: mono.copyWith(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 22,
+                    letterSpacing: 2,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                // Micro-header: one-line operator-facing context for what this
+                // gate tests. Renders above the binary gate question. See
+                // `FourGate.microHeader` and cursor rule §11.
+                Text(
+                  gate.microHeader,
+                  key: ValueKey('gate_micro_header_${gate.name}'),
+                  style: mono.copyWith(
+                    fontSize: 13,
+                    color: kFourGatesInkSecondary,
+                    height: 1.35,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  gate.question,
+                  style: mono.copyWith(fontSize: 16, color: kFourGatesInk),
+                ),
+                const SizedBox(height: 28),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _DecisionButton(
+                        label: 'OPEN',
+                        selected: decision == true,
+                        onTap: () => onDecide(true),
+                        mono: mono,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _DecisionButton(
+                        label: 'CLOSED',
+                        selected: decision == false,
+                        onTap: () => onDecide(false),
+                        mono: mono,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'EVIDENCE',
+                  style: mono.copyWith(fontSize: 12, color: kFourGatesInkMuted),
+                ),
+                const SizedBox(height: 6),
+                TextField(
+                  controller: evidence,
+                  maxLength: 120,
+                  style: mono.copyWith(fontSize: 14),
+                  cursorColor: Colors.white,
+                  decoration: InputDecoration(
+                    counterStyle:
+                        mono.copyWith(fontSize: 10, color: kFourGatesInkMuted),
+                    hintText: 'short text input',
+                    hintStyle: mono.copyWith(color: kFourGatesInkMuted),
+                    filled: true,
+                    fillColor: const Color(0xFF001220),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(2),
+                      borderSide: const BorderSide(color: Colors.white24),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(2),
+                      borderSide: const BorderSide(color: Colors.white),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(2),
+                      borderSide: const BorderSide(color: Colors.white24),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 12),
+                  ),
+                ),
+                if (originalGate != null) ...[
+                  const SizedBox(height: 12),
+                  _RevealOriginalBlock(
+                    original: originalGate!,
+                    revealed: revealedOriginal,
+                    onToggle: onToggleReveal ?? () {},
+                    mono: mono,
+                  ),
+                ],
+              ],
+            ),
           ),
         ),
-        const SizedBox(height: 8),
-        // Micro-header: one-line operator-facing context for what this
-        // gate tests. Renders above the binary gate question. See
-        // `FourGate.microHeader` and cursor rule §11.
-        Text(
-          gate.microHeader,
-          key: ValueKey('gate_micro_header_${gate.name}'),
-          style: mono.copyWith(
-            fontSize: 13,
-            color: Colors.white60,
-            height: 1.35,
-            fontStyle: FontStyle.italic,
-          ),
-        ),
-        const SizedBox(height: 10),
-        Text(
-          gate.question,
-          style: mono.copyWith(fontSize: 16, color: Colors.white70),
-        ),
-        const SizedBox(height: 28),
-        Row(
-          children: [
-            Expanded(
-              child: _DecisionButton(
-                label: 'OPEN',
-                selected: decision == true,
-                onTap: () => onDecide(true),
-                mono: mono,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _DecisionButton(
-                label: 'CLOSED',
-                selected: decision == false,
-                onTap: () => onDecide(false),
-                mono: mono,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 24),
-        Text(
-          'EVIDENCE',
-          style: mono.copyWith(fontSize: 12, color: Colors.white54),
-        ),
-        const SizedBox(height: 6),
-        TextField(
-          controller: evidence,
-          maxLength: 120,
-          style: mono.copyWith(fontSize: 14),
-          cursorColor: Colors.white,
-          decoration: InputDecoration(
-            counterStyle: mono.copyWith(fontSize: 10, color: Colors.white38),
-            hintText: 'short text input',
-            hintStyle: mono.copyWith(color: Colors.white30),
-            filled: true,
-            fillColor: const Color(0xFF001220),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(2),
-              borderSide: const BorderSide(color: Colors.white24),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(2),
-              borderSide: const BorderSide(color: Colors.white),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(2),
-              borderSide: const BorderSide(color: Colors.white24),
-            ),
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-          ),
-        ),
-        if (originalGate != null) ...[
-          const SizedBox(height: 12),
-          _RevealOriginalBlock(
-            original: originalGate!,
-            revealed: revealedOriginal,
-            onToggle: onToggleReveal ?? () {},
-            mono: mono,
-          ),
-        ],
-        const Spacer(),
+        const SizedBox(height: 16),
         _PrimaryButton(
           label: stepIndex == totalSteps - 1
               ? (originalGate != null ? 'RUN RE-TEST' : 'RUN GATES')
@@ -728,7 +746,7 @@ class _ResultPanel extends StatelessWidget {
           'LEDGER ENTRY',
           style: mono.copyWith(
             fontSize: 12,
-            color: Colors.white54,
+            color: kFourGatesInkMuted,
             letterSpacing: 2,
           ),
         ),
@@ -800,7 +818,7 @@ class _ResultPanel extends StatelessWidget {
             'VAULT — LAST ${recent.length} RUN${recent.length == 1 ? '' : 'S'}',
             style: mono.copyWith(
               fontSize: 12,
-              color: Colors.white54,
+              color: kFourGatesInkMuted,
               letterSpacing: 2,
             ),
           ),
@@ -818,7 +836,7 @@ class _ResultPanel extends StatelessWidget {
                 ),
                 child: Text(
                   r.formatLedger(),
-                  style: mono.copyWith(fontSize: 11, color: Colors.white70),
+                  style: mono.copyWith(fontSize: 11, color: kFourGatesInkSecondary),
                 ),
               ),
             ),
@@ -870,7 +888,7 @@ class _MicroPreamble extends StatelessWidget {
               _line1,
               style: mono.copyWith(
                 fontSize: 11,
-                color: Colors.white70,
+                color: kFourGatesInkSecondary,
                 height: 1.5,
               ),
             ),
@@ -879,7 +897,7 @@ class _MicroPreamble extends StatelessWidget {
               _line2,
               style: mono.copyWith(
                 fontSize: 11,
-                color: Colors.white70,
+                color: kFourGatesInkSecondary,
                 height: 1.5,
               ),
             ),
@@ -888,7 +906,7 @@ class _MicroPreamble extends StatelessWidget {
               _line3,
               style: mono.copyWith(
                 fontSize: 11,
-                color: Colors.white70,
+                color: kFourGatesInkSecondary,
                 height: 1.5,
               ),
             ),
@@ -916,7 +934,7 @@ class _StepIndicator extends StatelessWidget {
       children: [
         Text(
           'GATE ${step + 1} / $total',
-          style: mono.copyWith(fontSize: 12, color: Colors.white54),
+          style: mono.copyWith(fontSize: 12, color: kFourGatesInkMuted),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -1105,7 +1123,7 @@ class _RetestDueBanner extends StatelessWidget {
             Text(
               subtext,
               style: mono.copyWith(
-                color: Colors.white70,
+                color: kFourGatesInkSecondary,
                 fontSize: 11,
                 height: 1.35,
               ),
@@ -1189,14 +1207,14 @@ class _RetestHeader extends StatelessWidget {
             Text(
               'Verdict from $stamp',
               style: mono.copyWith(
-                color: Colors.white70,
+                color: kFourGatesInkSecondary,
                 fontSize: 11,
               ),
             ),
             Text(
               'Re-run all four gates against fresh evidence.',
               style: mono.copyWith(
-                color: Colors.white54,
+                color: kFourGatesInkMuted,
                 fontSize: 10,
                 height: 1.35,
               ),
@@ -1247,7 +1265,7 @@ class _RevealOriginalBlock extends StatelessWidget {
                 child: Text(
                   'ORIGINAL EVIDENCE',
                   style: mono.copyWith(
-                    color: Colors.white54,
+                    color: kFourGatesInkMuted,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 2,
                     fontSize: 11,
@@ -1286,7 +1304,7 @@ class _RevealOriginalBlock extends StatelessWidget {
               'GATE ${original.gate.number} — '
               '${original.open ? 'OPEN' : 'CLOSED'}',
               style: mono.copyWith(
-                color: Colors.white70,
+                color: kFourGatesInkSecondary,
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 1.5,
@@ -1335,7 +1353,7 @@ class _SecondaryButton extends StatelessWidget {
         child: Text(
           label,
           style: mono.copyWith(
-            color: Colors.white70,
+            color: kFourGatesInkSecondary,
             fontWeight: FontWeight.w700,
             letterSpacing: 2,
             fontSize: 13,

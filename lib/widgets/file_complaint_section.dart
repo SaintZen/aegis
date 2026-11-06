@@ -251,12 +251,12 @@ Signature / date: _______________
           const SizedBox(height: 8),
           const ContactRow(
             title: 'Zwischenzug Corestone LLC',
-            subtitle: 'Operational architecture & support',
+            subtitle: 'Operational architecture',
             mailto: null,
           ),
           const ContactRow(
             title: 'zwischenzug.admin@proton.me',
-            subtitle: 'Direct contact for assistance',
+            subtitle: 'Direct contact',
             mailto: 'zwischenzug.admin@proton.me',
           ),
         ],

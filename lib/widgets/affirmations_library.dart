@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 
+import 'package:anxiety_anchor/audio/audio_halt.dart';
+
 class Affirmation {
   final String text;
   final String category;
@@ -26,7 +28,7 @@ class AffirmationsLibraryScreen extends StatefulWidget {
 }
 
 class _AffirmationsLibraryScreenState extends State<AffirmationsLibraryScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   final AudioPlayer _audioPlayer = AudioPlayer();
   bool _isGuidedModeActive = false;
   int _currentIndex = 0;
@@ -145,6 +147,8 @@ class _AffirmationsLibraryScreenState extends State<AffirmationsLibraryScreen>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    unawaited(_audioPlayer.setLoopMode(LoopMode.off));
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 600),
@@ -158,11 +162,27 @@ class _AffirmationsLibraryScreenState extends State<AffirmationsLibraryScreen>
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (aegisLifecycleSilencesAudio(state)) {
+      unawaited(_haltSpokenWord());
+    }
+  }
+
+  Future<void> _haltSpokenWord() async {
+    _advanceTimer?.cancel();
+    try {
+      await _audioPlayer.setLoopMode(LoopMode.off);
+      await _audioPlayer.stop();
+    } catch (_) {}
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _advanceTimer?.cancel();
     _playerSubscription?.cancel();
     _voiceTrackSubscription?.cancel();
-    _audioPlayer.dispose();
+    unawaited(_audioPlayer.stop().whenComplete(_audioPlayer.dispose));
     _animationController.dispose();
     super.dispose();
   }
@@ -234,6 +254,7 @@ class _AffirmationsLibraryScreenState extends State<AffirmationsLibraryScreen>
     setState(() => _currentIndex = index);
     _animationController.forward(from: 0);
     if (!_isGuidedModeActive) return;
+    await _audioPlayer.setLoopMode(LoopMode.off);
     await _audioPlayer.setAsset(_affirmations[index].audioPath);
     await _audioPlayer.play();
   }
@@ -250,7 +271,11 @@ class _AffirmationsLibraryScreenState extends State<AffirmationsLibraryScreen>
 
   void _advanceToNext() {
     if (!_isGuidedModeActive) return;
-    final nextIndex = (_currentIndex + 1) % _affirmations.length;
+    if (_currentIndex >= _affirmations.length - 1) {
+      unawaited(_haltSpokenWord());
+      return;
+    }
+    final nextIndex = _currentIndex + 1;
     _advanceTimer?.cancel();
     _advanceTimer = Timer(const Duration(milliseconds: 400), () {
       if (!mounted) return;

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:anxiety_anchor/services/boundary_identity_service.dart';
+import 'package:anxiety_anchor/theme/aegis_hud.dart';
 import 'package:anxiety_anchor/widgets/emergency_crisis_sheet.dart';
 import 'package:anxiety_anchor/widgets/not_today_bridge.dart';
 import 'package:anxiety_anchor/widgets/not_today_sheet.dart';
@@ -24,6 +26,36 @@ class _NotTodayScreenState extends State<NotTodayScreen> {
   final ScrollController _scrollController = ScrollController();
   final GlobalKey _quickScriptsKey = GlobalKey();
   final GlobalKey _fullScriptsKey = GlobalKey();
+  final TextEditingController _operatorName = TextEditingController();
+  final TextEditingController _recipient = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _operatorName.addListener(_persistOperatorName);
+    _loadOperatorName();
+  }
+
+  Future<void> _loadOperatorName() async {
+    final name = await BoundaryIdentityService.getDisplayName();
+    if (!mounted) return;
+    if (_operatorName.text == name) return;
+    _operatorName.text = name;
+  }
+
+  Future<void> _persistOperatorName() async {
+    await BoundaryIdentityService.setDisplayName(_operatorName.text);
+  }
+
+  Future<void> _openScript(String template) async {
+    await NotTodaySheet.show(
+      context,
+      scriptTemplate: template,
+      initialRecipient: _recipient.text,
+    );
+    if (!mounted) return;
+    await _loadOperatorName();
+  }
 
   static const List<String> _quickRefusalScripts = [
     "Hi [Name],\n\nI need to step away today and won't be available. I'll follow up when I can.\n\nBest,\n[Your Name]",
@@ -88,6 +120,9 @@ class _NotTodayScreenState extends State<NotTodayScreen> {
 
   @override
   void dispose() {
+    _operatorName.removeListener(_persistOperatorName);
+    _operatorName.dispose();
+    _recipient.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -99,7 +134,7 @@ class _NotTodayScreenState extends State<NotTodayScreen> {
       ctx,
       duration: const Duration(milliseconds: 400),
       curve: Curves.easeInOut,
-      alignment: 0.1,
+      alignment: 0.0,
     );
   }
 
@@ -118,7 +153,7 @@ class _NotTodayScreenState extends State<NotTodayScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0A0A0A),
-      appBar: AppBar(
+      appBar: aegisHudAppBar(
         title: const Text(
           'NOT TODAY',
           style: TextStyle(
@@ -127,12 +162,10 @@ class _NotTodayScreenState extends State<NotTodayScreen> {
             fontWeight: FontWeight.w700,
           ),
         ),
-        backgroundColor: Colors.transparent,
       ),
-      body: SafeArea(
-        child: ListView(
+      body: ListView(
           controller: _scrollController,
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
           physics: const ClampingScrollPhysics(),
           children: [
             _buildSectionHeader('EXTERNAL LINKS'),
@@ -164,7 +197,6 @@ class _NotTodayScreenState extends State<NotTodayScreen> {
               child: _buildFullScriptsSection(context),
             ),
           ],
-        ),
       ),
     );
   }
@@ -267,18 +299,29 @@ class _NotTodayScreenState extends State<NotTodayScreen> {
           ),
           const SizedBox(height: 6),
           Text(
-            'Tap to open deployment sheet: recipient, preview, copy, send.',
+            'Type the names, tap a script, copy. Names inject into [Name] and [Your Name].',
             style: TextStyle(color: Colors.white.withOpacity(0.65), fontSize: 12),
+          ),
+          const SizedBox(height: 12),
+          NotTodayNameField(
+            key: const Key('not_today_operator_name'),
+            controller: _operatorName,
+            label: 'YOUR NAME',
+            hint: 'Signs the script',
+          ),
+          const SizedBox(height: 12),
+          NotTodayNameField(
+            key: const Key('not_today_recipient'),
+            controller: _recipient,
+            label: 'RECIPIENT NAME',
+            hint: 'Who this goes to',
           ),
           const SizedBox(height: 12),
           ...List.generate(_quickRefusalScripts.length, (i) {
             return Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: OutlinedButton(
-                onPressed: () => NotTodaySheet.show(
-                  context,
-                  scriptTemplate: _quickRefusalScripts[i],
-                ),
+                onPressed: () => _openScript(_quickRefusalScripts[i]),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Colors.white70,
                   side: BorderSide(color: Colors.orange.withOpacity(0.4)),
@@ -370,7 +413,7 @@ class _NotTodayScreenState extends State<NotTodayScreen> {
         style: const TextStyle(color: Colors.white70, fontSize: 14),
       ),
       trailing: const Icon(Icons.open_in_new, color: Colors.orangeAccent, size: 18),
-      onTap: () => NotTodaySheet.show(context, scriptTemplate: text),
+      onTap: () => _openScript(text),
     );
   }
 }

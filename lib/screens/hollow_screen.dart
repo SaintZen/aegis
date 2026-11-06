@@ -7,7 +7,6 @@ import 'package:flutter/services.dart';
 import 'package:anxiety_anchor/services/aegis_log_service.dart';
 import 'package:anxiety_anchor/services/calibration_service.dart';
 import 'package:anxiety_anchor/services/usage_log_service.dart';
-
 enum _HollowMode { implicit, triggered, overload, vigilance, unknown }
 
 /// The Hollow — Passive Sonar Array.
@@ -105,11 +104,20 @@ class _HollowScreenState extends State<HollowScreen>
     _textController.addListener(() {
       if (mounted) setState(() {});
     });
+    _focusNode.addListener(_onHollowFocusChange);
     _startCountdown();
     _startRippleLoop();
     _repaintTimer = Timer.periodic(const Duration(milliseconds: 80), (_) {
       if (mounted) setState(() {});
     });
+  }
+
+  void _onHollowFocusChange() {
+    if (mounted) setState(() {});
+  }
+
+  bool _shouldHideReasonChrome(BuildContext context) {
+    return _focusNode.hasFocus || MediaQuery.viewInsetsOf(context).bottom > 0;
   }
 
   void _startCountdown() {
@@ -443,6 +451,7 @@ class _HollowScreenState extends State<HollowScreen>
                       height: 220,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
+                        color: Colors.black.withValues(alpha: 0.72),
                         border: Border.all(
                           color: Colors.white.withOpacity(0.22),
                           width: 1.6,
@@ -460,6 +469,8 @@ class _HollowScreenState extends State<HollowScreen>
                 },
               ),
             ),
+            // Stones under the field so the 7th-sense input stays on top.
+            _buildReasonWellOverlay(),
             // 7th Sense input block: header, field, commit, confirmation
             Center(
               child: Padding(
@@ -470,7 +481,16 @@ class _HollowScreenState extends State<HollowScreen>
                     animation: _glowController,
                     builder: (context, _) {
                       final glow = 0.4 + (_glowController.value * 0.5);
-                      return Column(
+                      return Container(
+                        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.82),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.12),
+                          ),
+                        ),
+                        child: Column(
                         key: _centerColumnKey,
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -536,21 +556,21 @@ class _HollowScreenState extends State<HollowScreen>
                                     fontFamily: 'RobotoMono',
                                   ),
                                   filled: true,
-                                  fillColor: Colors.black.withOpacity(0.35),
-                                  border: const OutlineInputBorder(
-                                    borderRadius: BorderRadius.zero,
+                                  fillColor: Colors.black.withValues(alpha: 0.88),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
                                     borderSide:
-                                        BorderSide(color: Color(0xFF2A2A2A)),
+                                        const BorderSide(color: Color(0xFF2A2A2A)),
                                   ),
-                                  enabledBorder: const OutlineInputBorder(
-                                    borderRadius: BorderRadius.zero,
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
                                     borderSide:
-                                        BorderSide(color: Color(0xFF2A2A2A)),
+                                        const BorderSide(color: Color(0xFF2A2A2A)),
                                   ),
                                   focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.zero,
+                                    borderRadius: BorderRadius.circular(8),
                                     borderSide: BorderSide(
-                                      color: _indigo.withOpacity(0.65),
+                                      color: _indigo.withValues(alpha: 0.65),
                                     ),
                                   ),
                                   contentPadding: const EdgeInsets.fromLTRB(
@@ -633,14 +653,13 @@ class _HollowScreenState extends State<HollowScreen>
                             ),
                           ],
                         ],
+                        ),
                       );
                     },
                   ),
                 ),
               ),
             ),
-            // Stones above the field so labels receive taps; clear of center signal column.
-            _buildReasonWellOverlay(),
           ],
         ),
       ),
@@ -809,7 +828,8 @@ class _HollowScreenState extends State<HollowScreen>
                   ),
                 ),
               ],
-              if (_selectedReasonIndex != null) ...[
+              if (_selectedReasonIndex != null &&
+                  !_shouldHideReasonChrome(context)) ...[
                 Positioned(
                   left: 0,
                   right: 0,
@@ -836,7 +856,7 @@ class _HollowScreenState extends State<HollowScreen>
                 Positioned(
                   left: 0,
                   right: 0,
-                  bottom: 52,
+                  top: 52,
                   child: Center(
                     child: AnimatedSwitcher(
                       duration: const Duration(milliseconds: 250),
