@@ -59,6 +59,7 @@ class _IslandScreenState extends State<IslandScreen>
   bool _isLandscape = false;
 
   int _selectedVistaIndex = 0;
+  int? _loadedVistaIndex;
   VideoPlayerController? _fullController;
   String? _fullError;
   late final PageController _vistaPageController;
@@ -200,17 +201,19 @@ class _IslandScreenState extends State<IslandScreen>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _updateOrientation(
-      MediaQuery.of(context).orientation == Orientation.landscape,
-      initializeOnly: true,
-    );
+    _syncOrientationFromMediaQuery();
   }
 
   @override
   void didChangeMetrics() {
-    final view = View.of(context);
-    final size = view.physicalSize / view.devicePixelRatio;
-    _updateOrientation(size.width > size.height);
+    if (!mounted) return;
+    _syncOrientationFromMediaQuery();
+  }
+
+  void _syncOrientationFromMediaQuery() {
+    _updateOrientation(
+      MediaQuery.orientationOf(context) == Orientation.landscape,
+    );
   }
 
   void _setMode(_IslandMode mode) {
@@ -223,32 +226,29 @@ class _IslandScreenState extends State<IslandScreen>
     }
   }
 
-  void _updateOrientation(bool isLandscape, {bool initializeOnly = false}) {
-    if (_isLandscape == isLandscape && !initializeOnly) return;
+  void _updateOrientation(bool isLandscape) {
+    if (_isLandscape == isLandscape) return;
     if (isLandscape) {
       _lastPortraitMode = _mode;
       _mode = _IslandMode.vista;
-      _loadFullVista();
-      _playVistaAudio(_selectedVistaIndex);
+      unawaited(_loadFullVista());
+      unawaited(_playVistaAudio(_selectedVistaIndex));
       _syncVistaPagerToSelection();
     } else {
       _fullController?.dispose();
       _fullController = null;
       _fullError = null;
+      _loadedVistaIndex = null;
       if (_lastPortraitMode != _IslandMode.vista) {
         _mode = _lastPortraitMode;
       }
       if (_mode == _IslandMode.vista) {
-        _playVistaAudio(_selectedVistaIndex);
+        unawaited(_playVistaAudio(_selectedVistaIndex));
       } else {
-        _stopVistaAudio();
+        unawaited(_stopVistaAudio());
       }
     }
-    if (!initializeOnly) {
-      setState(() => _isLandscape = isLandscape);
-    } else {
-      _isLandscape = isLandscape;
-    }
+    setState(() => _isLandscape = isLandscape);
   }
 
   double getNeonSize(BuildContext context) {
@@ -267,8 +267,14 @@ class _IslandScreenState extends State<IslandScreen>
   }
 
   Future<void> _loadFullVista() async {
+    if (_loadedVistaIndex == _selectedVistaIndex &&
+        _fullController != null &&
+        _fullController!.value.isInitialized) {
+      return;
+    }
     final current = _fullController;
     _fullController = null;
+    _loadedVistaIndex = null;
     await current?.dispose();
 
     VideoPlayerController? controller;
@@ -299,12 +305,21 @@ class _IslandScreenState extends State<IslandScreen>
     setState(() {
       _fullError = null;
       _fullController = controller;
+      _loadedVistaIndex = _selectedVistaIndex;
     });
-    _playVistaAudio(_selectedVistaIndex);
+    unawaited(_playVistaAudio(_selectedVistaIndex));
   }
 
   @override
   Widget build(BuildContext context) {
+    final landscape =
+        MediaQuery.orientationOf(context) == Orientation.landscape;
+    if (landscape != _isLandscape) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _syncOrientationFromMediaQuery();
+      });
+    }
     return Scaffold(
       backgroundColor: const Color(0xFF121212),
       body: Stack(
@@ -317,16 +332,17 @@ class _IslandScreenState extends State<IslandScreen>
               right: 16,
               child: _buildModeToggle(),
             ),
-          Positioned(
-            top: 16,
-            right: 16,
-            child: GestureDetector(
-              onTap: () => _setMode(_IslandMode.kinetic),
-              child: KineticNeonShield(
-                isActive: _mode == _IslandMode.kinetic,
+          if (!_isLandscape)
+            Positioned(
+              top: 16,
+              right: 16,
+              child: GestureDetector(
+                onTap: () => _setMode(_IslandMode.kinetic),
+                child: KineticNeonShield(
+                  isActive: _mode == _IslandMode.kinetic,
+                ),
               ),
             ),
-          ),
           if (!_isLandscape &&
               !_isExecutingSequence &&
               ModalRoute.of(context)?.settings.name == '/island')

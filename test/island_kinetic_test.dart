@@ -151,6 +151,33 @@ void main() {
     await tester.pump(const Duration(seconds: 8));
   });
 
+  testWidgets('rotating to landscape turns Vistas into one screen',
+      (tester) async {
+    tester.view.physicalSize = const Size(390, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: IslandScreen(),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.byKey(const ValueKey('vista_landscape_pager')), findsNothing);
+    expect(find.text('Mountain Bell'), findsOneWidget);
+    expect(find.text('VISTA'), findsOneWidget);
+
+    tester.view.physicalSize = const Size(800, 390);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+
+    expect(find.byKey(const ValueKey('vista_landscape_pager')), findsOneWidget);
+    expect(find.text('VISTA'), findsNothing);
+    expect(find.text('Mountain Bell'), findsNothing);
+  });
+
   testWidgets('landscape Vista pages swipe; dots remain', (tester) async {
     tester.view.physicalSize = const Size(800, 390);
     tester.view.devicePixelRatio = 1;
